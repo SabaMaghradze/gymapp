@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: gymapp_rest
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gymapp_rest
+    username: costigan
+    password: billyjr
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8082
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: beans, health
+#  endpoint:
+#    shutdown:
+#      enabled: true
+#    health:
+#      show-details: always
