@@ -1,0 +1,38 @@
+package com.rest.gymapp.model;
+
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "trainers")
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Trainer {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "specialization_id")
+    private TrainingType specialization;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @ManyToMany(mappedBy = "trainers")
+    private Set<Trainee> trainees = new HashSet<>();
+
+    @OneToMany(mappedBy = "trainer")
+    private Set<Training> trainings = new HashSet<>();
+}
