@@ -2,20 +2,15 @@ package com.rest.gymapp.repository;
 
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface TrainerRepository {
-
-    Trainer save(Trainer trainer);
-
-    Optional<Trainer> findById(Long id);
-
-    List<Trainer> findAll();
-
-    void delete(Trainer trainer);
+@Repository
+public interface TrainerRepository extends JpaRepository<Trainer, Long> {
 
     Optional<Trainer> findByUsername(String username);
 

@@ -3,22 +3,17 @@ package com.rest.gymapp.repository;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface TraineeRepository {
-
-    Trainee save(Trainee trainee);
-
-    Optional<Trainee> findById(Long id);
+@Repository
+public interface TraineeRepository extends JpaRepository<Trainee, Long> {
 
     Optional<Trainee> findByUsername(String username);
-
-    List<Trainee> findAll();
-
-    void delete(Trainee trainee);
 
     List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername);
 
@@ -27,5 +22,4 @@ public interface TraineeRepository {
                                                      LocalDate toDate,
                                                      String trainerName,
                                                      String trainingTypeName);
-
 }

@@ -1,19 +1,13 @@
 package com.rest.gymapp.repository;
 
 import com.rest.gymapp.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository {
-
-    User save(User user);
-
-    Optional<User> findById(Long id);
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
-
-    List<User> findAll();
-
-    void delete(User user);
 }
