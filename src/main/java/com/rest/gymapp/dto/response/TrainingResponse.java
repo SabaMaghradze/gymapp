@@ -1,4 +1,4 @@
-package com.rest.gymapp.response;
+package com.rest.gymapp.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

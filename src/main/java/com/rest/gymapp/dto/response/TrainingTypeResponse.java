@@ -1,4 +1,4 @@
-package com.rest.gymapp.response;
+package com.rest.gymapp.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,4 +17,8 @@ public class TrainingTypeResponse {
 
     private Set<TrainerResponse> trainerResponses;
 
+    public TrainingTypeResponse(Long id, String trainingTypeName) {
+        this.id = id;
+        this.trainingTypeName = trainingTypeName;
+    }
 }

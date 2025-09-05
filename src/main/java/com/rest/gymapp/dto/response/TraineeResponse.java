@@ -1,4 +1,4 @@
-package com.rest.gymapp.response;
+package com.rest.gymapp.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,4 +22,10 @@ public class TraineeResponse {
 
     private Set<TrainingResponse> trainingResponses;
 
+    public TraineeResponse(Long id, LocalDate dateOfBirth, String address, UserResponse userResponse) {
+        this.id = id;
+        this.dateOfBirth = dateOfBirth;
+        this.address = address;
+        this.userResponse = userResponse;
+    }
 }

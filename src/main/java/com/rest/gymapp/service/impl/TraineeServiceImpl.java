@@ -1,5 +1,6 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
@@ -31,42 +32,32 @@ public class TraineeServiceImpl implements TraineeService {
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
 
-    public Optional<Trainee> createTraineeProfile(String firstName, String lastName,
-                                                  LocalDate dateOfBirth, String address) {
-        logger.info("Creating trainee profile for: {} {}", firstName, lastName);
+    public RegistrationResponse createTraineeProfile(String firstName, String lastName,
+                                                     LocalDate dateOfBirth, String address) {
 
-        try {
-            if (firstName == null || firstName.trim().isEmpty() ||
-                    lastName == null || lastName.trim().isEmpty()) {
-                logger.warn("Validation failed: First name and last name are required");
-                return Optional.empty();
-            }
+        logger.info("Registering trainee profile for: {} {}", firstName, lastName);
 
-            String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
-            String password = credentialsGenerator.generatePassword();
+        String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
+        String password = credentialsGenerator.generatePassword();
 
-            User user = new User();
-            user.setFirstName(firstName.trim());
-            user.setLastName(lastName.trim());
-            user.setUsername(username);
-            user.setPassword(password);
-            user.setIsActive(true);
+        User user = new User();
+        user.setFirstName(firstName.trim());
+        user.setLastName(lastName.trim());
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setIsActive(true);
 
-            User savedUser = userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-            Trainee trainee = new Trainee();
-            trainee.setDateOfBirth(dateOfBirth);
-            trainee.setAddress(address);
-            trainee.setUser(savedUser);
+        Trainee trainee = new Trainee();
+        trainee.setDateOfBirth(dateOfBirth);
+        trainee.setAddress(address);
+        trainee.setUser(savedUser);
 
-            Trainee savedTrainee = traineeRepository.save(trainee);
+        Trainee savedTrainee = traineeRepository.save(trainee);
 
-            logger.info("Successfully created trainee profile for username: {}", username);
-            return Optional.of(savedTrainee);
-        } catch (Exception e) {
-            logger.error("Error creating trainee profile for {} {}", firstName, lastName, e);
-            throw new RuntimeException("Failed to create trainee profile", e);
-        }
+        logger.info("Successfully created trainee profile for username: {}", username);
+        return new RegistrationResponse(username, password);
     }
 
     public Optional<Trainee> getTraineeProfileByUsername(String username, String password) {

@@ -1,6 +1,6 @@
 package com.rest.gymapp.service.impl;
 
-
+import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
 import com.rest.gymapp.model.TrainingType;
@@ -32,44 +32,31 @@ public class TrainerServiceImpl implements TrainerService {
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
 
-    @Transactional
-    public Optional<Trainer> createTrainerProfile(String firstName, String lastName,
-                                                  TrainingType specialization) {
+    public RegistrationResponse createTrainerProfile(String firstName, String lastName,
+                                                     TrainingType specialization) {
 
         logger.info("Creating trainer profile for: {} {}", firstName, lastName);
 
-        try {
-            if (firstName == null || firstName.trim().isEmpty() ||
-                    lastName == null || lastName.trim().isEmpty() ||
-                    specialization == null) {
-                logger.warn("Validation failed: First name, last name, and specialization are required");
-                return Optional.empty();
-            }
+        String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
+        String password = credentialsGenerator.generatePassword();
 
-            String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
-            String password = credentialsGenerator.generatePassword();
+        User user = new User();
+        user.setFirstName(firstName.trim());
+        user.setLastName(lastName.trim());
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setIsActive(true);
 
-            User user = new User();
-            user.setFirstName(firstName.trim());
-            user.setLastName(lastName.trim());
-            user.setUsername(username);
-            user.setPassword(password);
-            user.setIsActive(true);
+        User savedUser = userRepository.save(user);
 
-            User savedUser = userRepository.save(user);
+        Trainer trainer = new Trainer();
+        trainer.setSpecialization(specialization);
+        trainer.setUser(savedUser);
 
-            Trainer trainer = new Trainer();
-            trainer.setSpecialization(specialization);
-            trainer.setUser(savedUser);
+        Trainer savedTrainer = trainerRepository.save(trainer);
 
-            Trainer savedTrainer = trainerRepository.save(trainer);
-
-            logger.info("Successfully created trainer profile for username: {}", username);
-            return Optional.of(savedTrainer);
-        } catch (Exception e) {
-            logger.error("Error creating trainer profile for {} {}", firstName, lastName, e);
-            throw new RuntimeException("Failed to create trainer profile", e);
-        }
+        logger.info("Successfully created trainer profile for username: {}", username);
+        return new RegistrationResponse(username, password);
     }
 
     public Optional<Trainer> getTrainerProfileByUsername(String username, String password) {

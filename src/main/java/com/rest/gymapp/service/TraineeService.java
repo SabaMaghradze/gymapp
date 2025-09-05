@@ -1,5 +1,6 @@
 package com.rest.gymapp.service;
 
+import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
@@ -11,8 +12,8 @@ import java.util.Optional;
 
 public interface TraineeService {
 
-    Optional<Trainee> createTraineeProfile(String firstName, String lastName,
-                                           LocalDate dateOfBirth, String address);
+    RegistrationResponse createTraineeProfile(String firstName, String lastName,
+                                              LocalDate dateOfBirth, String address);
 
     Optional<Trainee> getTraineeProfileByUsername(String username, String password);
 

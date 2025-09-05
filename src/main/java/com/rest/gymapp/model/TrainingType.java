@@ -32,8 +32,4 @@ public class TrainingType {
 
     @OneToMany(mappedBy = "specialization")
     private Set<Trainer> trainers = new HashSet<>();
-
-    public TrainingType(String trainingTypeName) {
-        this.trainingTypeName = trainingTypeName;
-    }
 }
