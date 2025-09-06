@@ -1,15 +1,15 @@
 package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.model.Trainer;
-import com.rest.gymapp.model.Training;
-import com.rest.gymapp.model.TrainingType;
-import com.rest.gymapp.model.User;
+import com.rest.gymapp.dto.response.TrainerResponse;
+import com.rest.gymapp.exception.UserNotFoundException;
+import com.rest.gymapp.model.*;
 import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TrainerService;
 import com.rest.gymapp.utils.CredentialsGenerator;
+import com.rest.gymapp.utils.Mappers;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -31,6 +31,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
+    private final Mappers mappers;
 
     public RegistrationResponse createTrainerProfile(String firstName, String lastName,
                                                      TrainingType specialization) {
@@ -59,15 +60,19 @@ public class TrainerServiceImpl implements TrainerService {
         return new RegistrationResponse(username, password);
     }
 
-    public Optional<Trainer> getTrainerProfileByUsername(String username, String password) {
+    public TrainerResponse getTrainerByUsername(String username, String password) {
+
         logger.debug("Getting trainer profile for username: {}", username);
 
-        if (!authenticationService.authenticateTrainer(username, password)) {
-            logger.warn("Authentication failed for trainer username: {}", username);
-            return Optional.empty();
+        authenticationService.authenticateTrainee(username, password);
+
+        Optional<Trainer> trainer = trainerRepository.findByUsername(username);
+
+        if (trainer.isEmpty()) {
+            throw new UserNotFoundException("Trainer with username " + username + " does not exist");
         }
 
-        return trainerRepository.findByUsername(username);
+        return mappers.getTrainerResponse(trainer.get());
     }
 
     @Transactional

@@ -1,6 +1,8 @@
 package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.dto.response.RegistrationResponse;
+import com.rest.gymapp.dto.response.TraineeResponse;
+import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
@@ -10,6 +12,7 @@ import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.utils.CredentialsGenerator;
+import com.rest.gymapp.utils.Mappers;
 import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
+    private final Mappers mappers;
 
     public RegistrationResponse createTraineeProfile(String firstName, String lastName,
                                                      LocalDate dateOfBirth, String address) {
@@ -60,15 +64,19 @@ public class TraineeServiceImpl implements TraineeService {
         return new RegistrationResponse(username, password);
     }
 
-    public Optional<Trainee> getTraineeProfileByUsername(String username, String password) {
+    public TraineeResponse getTraineeProfileByUsername(String username, String password) {
+
         logger.debug("Getting trainee profile for username: {}", username);
 
-        if (!authenticationService.authenticateTrainee(username, password)) {
-            logger.warn("Authentication failed for trainee username: {}", username);
-            return Optional.empty();
+        authenticationService.authenticateTrainee(username, password);
+
+        Optional<Trainee> trainee = traineeRepository.findByUsername(username);
+
+        if (trainee.isEmpty()) {
+            throw new UserNotFoundException("Trainee with username " + username + " does not exist");
         }
 
-        return traineeRepository.findByUsername(username);
+        return mappers.getTraineeResponse(trainee.get());
     }
 
     public boolean changeTraineePassword(String username, String oldPassword, String newPassword) {

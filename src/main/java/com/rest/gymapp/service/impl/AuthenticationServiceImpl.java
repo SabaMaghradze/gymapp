@@ -1,5 +1,7 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.exception.InvalidCredentialsException;
+import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.User;
 import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
@@ -15,42 +17,63 @@ import java.util.Optional;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
-
     private final UserRepository userRepository;
 
-    public boolean authenticateTrainee(String username, String password) {
+    public void authenticateTrainee(String username, String password) {
         logger.info("Authenticating trainee: {}", username);
-        return authenticateUser(username, password);
+        authenticateUser(username, password);
     }
 
-    public boolean authenticateTrainer(String username, String password) {
+    public void authenticateTrainer(String username, String password) {
         logger.info("Authenticating trainer: {}", username);
-        return authenticateUser(username, password);
+        authenticateUser(username, password);
     }
 
-    private boolean authenticateUser(String username, String password) {
+    public void authenticateUser(String username, String password) {
+
         Optional<User> userOpt = userRepository.findByUsername(username);
 
-        if (!userOpt.isPresent()) { // put isEmpty instead of isPresent
+        if (userOpt.isEmpty()) { // put isEmpty instead of isPresent
             logger.warn("Authentication failed: User {} not found", username);
-            return false;
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
         User user = userOpt.get();
 
         if (!user.getIsActive()) {
             logger.warn("Authentication failed: User {} is deactivated", username);
-            return false;
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
-        boolean passwordMatches = user.getPassword().equals(password);
-
-        if (!passwordMatches) {
+        if (!user.getPassword().equals(password)) {
             logger.warn("Authentication failed: Wrong password for user {}", username);
-        } else {
-            logger.info("You have been successfully authenticated!");
+            throw new InvalidCredentialsException("Invalid username or password");
         }
 
-        return passwordMatches;
+        logger.info("User {} successfully authenticated", username);
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) {
+
+        logger.info("Changing password for user: {}", username);
+
+        Optional<User> userOpt = userRepository.findByUsername(username);
+
+        if (userOpt.isEmpty()) {
+            throw new UserNotFoundException("Failed to find user " + username);
+        }
+
+        User user = userOpt.get();
+
+        if (!user.getPassword().equals(oldPassword)) {
+            throw new InvalidCredentialsException("Wrong password, please try again");
+        }
+
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new RuntimeException("New password cannot be empty");
+        }
+
+        user.setPassword(newPassword);
     }
 }

@@ -1,6 +1,7 @@
 package com.rest.gymapp.service;
 
 import com.rest.gymapp.dto.response.RegistrationResponse;
+import com.rest.gymapp.dto.response.TrainerResponse;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
 import com.rest.gymapp.model.TrainingType;
@@ -13,6 +14,8 @@ public interface TrainerService {
 
     RegistrationResponse createTrainerProfile(String firstName, String lastName,
                                               TrainingType specialization);
+
+    TrainerResponse getTrainerByUsername(String username, String password);
 
     boolean changeTrainerPassword(String username, String oldPassword, String newPassword);
 
