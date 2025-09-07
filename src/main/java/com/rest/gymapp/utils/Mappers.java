@@ -1,6 +1,10 @@
 package com.rest.gymapp.utils;
 
 import com.rest.gymapp.dto.response.*;
+import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseForTraineeProfile;
 import com.rest.gymapp.model.*;
 
 import java.util.HashSet;
@@ -9,22 +13,23 @@ import java.util.Set;
 public class Mappers {
 
     public UserResponse getUserResponse(User user) {
-        UserResponse userResponse = new UserResponse(user.getId(),
+        UserResponse userResponse = new UserResponse(
                 user.getFirstName(),
                 user.getLastName(),
                 user.getUsername(),
-                user.getIsActive(),
-                getTraineeResponse(user.getTrainee()),
-                getTrainerResponse(user.getTrainer()));
+                user.getIsActive());
 
         return userResponse;
     }
 
     public TrainerResponse getTrainerResponse(Trainer trainer) {
 
-        TrainerResponse trainerResponse = new TrainerResponse(trainer.getId(),
-                getTrainingTypeResponse(trainer.getSpecialization()),
-                getUserResponse(trainer.getUser()));
+        TrainerResponse trainerResponse = new TrainerResponse(
+                trainer.getUser().getUsername(),
+                trainer.getUser().getFirstName(),
+                trainer.getUser().getLastName(),
+                getTrainingTypeResponse(trainer.getSpecialization())
+        );
 
         // set trainee and training responses.
 
@@ -34,16 +39,16 @@ public class Mappers {
         for (Trainee trainee : trainees) {
             traineeResponses.add(getTraineeResponse(trainee));
         }
-
-        Set<TrainingResponse> trainingResponses = new HashSet<>();
-        Set<Training> trainings = trainer.getTrainings();
-
-        for (Training training : trainings) {
-            trainingResponses.add(getTrainingResponse(training));
-        }
-
+//
+//        Set<TrainingResponse> trainingResponses = new HashSet<>();
+//        Set<Training> trainings = trainer.getTrainings();
+//
+//        for (Training training : trainings) {
+//            trainingResponses.add(getTrainingResponse(training));
+//        }
+//
         trainerResponse.setTraineeResponses(traineeResponses);
-        trainerResponse.setTrainingResponses(trainingResponses);
+//        trainerResponse.setTrainingResponses(trainingResponses);
 
         return trainerResponse;
     }
@@ -65,10 +70,14 @@ public class Mappers {
 
     public TraineeResponse getTraineeResponse(Trainee trainee) {
 
-        TraineeResponse traineeResponse = new TraineeResponse(trainee.getId(),
+        TraineeResponse traineeResponse = new TraineeResponse(
+                trainee.getUser().getUsername(),
+                trainee.getUser().getFirstName(),
+                trainee.getUser().getLastName(),
                 trainee.getDateOfBirth(),
                 trainee.getAddress(),
-                getUserResponse(trainee.getUser()));
+                trainee.getUser().getIsActive()
+        );
 
         // set training and trainer responses.
 
@@ -79,16 +88,48 @@ public class Mappers {
             trainerResponses.add(getTrainerResponse(trainer));
         }
 
-        Set<TrainingResponse> trainingResponses = new HashSet<>();
-        Set<Training> trainings = trainee.getTrainings();
+//        traineeResponse.setTrainingResponses(trainingResponses);
 
-        for (Training training : trainings) {
-            trainingResponses.add(getTrainingResponse(training));
-        }
+//        Set<TrainingResponse> trainingResponses = new HashSet<>();
+//        Set<Training> trainings = trainee.getTrainings();
+//
+//        for (Training training : trainings) {
+//            trainingResponses.add(getTrainingResponse(training));
+//        }
 
         traineeResponse.setTrainerResponses(trainerResponses);
-        traineeResponse.setTrainingResponses(trainingResponses);
 
         return traineeResponse;
+    }
+
+    public TraineeProfileResponse getTraineeProfileResponse(Trainee trainee) {
+
+        TraineeProfileResponse response = new TraineeProfileResponse(
+                trainee.getUser().getFirstName(),
+                trainee.getUser().getLastName(),
+                trainee.getDateOfBirth(),
+                trainee.getAddress(),
+                trainee.getUser().getIsActive()
+        );
+
+        Set<Trainer> trainers = trainee.getTrainers();
+        Set<TrainerResponseForTraineeProfile> trainerResponses = new HashSet<>();
+
+        for (Trainer trainer : trainers) {
+            trainerResponses.add(getTrainerResponseTwo(trainer));
+        }
+
+        response.setTrainerResponses(trainerResponses);
+
+        return response;
+    }
+
+    private TrainerResponseForTraineeProfile getTrainerResponseTwo(Trainer trainer) {
+        return new TrainerResponseForTraineeProfile(
+                trainer.getUser().getFirstName(),
+                trainer.getUser().getLastName(),
+                trainer.getUser().getUsername(),
+                getTrainingTypeResponse(trainer.getSpecialization())
+        );
     }
 }

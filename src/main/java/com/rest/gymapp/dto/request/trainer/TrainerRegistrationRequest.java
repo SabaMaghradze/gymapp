@@ -1,4 +1,4 @@
-package com.rest.gymapp.dto.request;
+package com.rest.gymapp.dto.request.trainer;
 
 import com.rest.gymapp.model.TrainingType;
 import jakarta.validation.constraints.NotBlank;

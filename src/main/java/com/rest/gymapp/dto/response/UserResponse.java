@@ -7,8 +7,6 @@ import lombok.Data;
 @Data
 public class UserResponse {
 
-    private Long id;
-
     private String firstName;
 
     private String lastName;
@@ -16,16 +14,4 @@ public class UserResponse {
     private String username;
 
     private Boolean isActive;
-
-    private TraineeResponse traineeResponse;
-
-    private TrainerResponse trainerResponse;
-
-    public UserResponse(Long id, String firstName, String lastName, String username, Boolean isActive) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.username = username;
-        this.isActive = isActive;
-    }
 }

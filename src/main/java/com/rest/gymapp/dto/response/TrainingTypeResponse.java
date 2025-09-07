@@ -1,5 +1,6 @@
 package com.rest.gymapp.dto.response;
 
+import com.rest.gymapp.dto.response.trainer.TrainerResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

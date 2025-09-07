@@ -1,9 +1,11 @@
 package com.rest.gymapp.controller;
 
 
-import com.rest.gymapp.dto.request.TraineeRegistrationRequest;
+import com.rest.gymapp.dto.request.trainee.TraineeRegistrationRequest;
+import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.dto.response.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeResponse;
 import com.rest.gymapp.service.TraineeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +35,22 @@ public class TraineeController {
     }
 
     @GetMapping("/trainee")
-    public ResponseEntity<TraineeResponse> getTrainee(@RequestParam String username,
-                                                      @RequestParam String password) {
+    public ResponseEntity<TraineeProfileResponse> getTrainee(@RequestParam String username,
+                                                             @RequestParam String password) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(traineeService.getTraineeProfileByUsername(username, password));
+    }
+
+    @PutMapping("/update-trainee")
+    public ResponseEntity<TraineeResponse> updateTrainee(@Valid @RequestBody TraineeUpdateRequest req,
+                                                         @RequestParam String password) {
+        return ResponseEntity.status(HttpStatus.OK).body(traineeService.updateTraineeProfile(req, password));
+    }
+
+    @DeleteMapping("/delete-trainee")
+    public ResponseEntity<?> deleteTrainee(@RequestParam String username,
+                                           @RequestParam String password) {
+        traineeService.deleteTraineeProfile(username, password);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

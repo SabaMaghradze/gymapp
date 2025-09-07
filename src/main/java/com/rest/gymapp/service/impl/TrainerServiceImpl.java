@@ -1,7 +1,8 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.dto.request.trainer.TrainerUpdateRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.dto.response.TrainerResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponse;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.*;
 import com.rest.gymapp.repository.TrainerRepository;
@@ -62,110 +63,81 @@ public class TrainerServiceImpl implements TrainerService {
 
     public TrainerResponse getTrainerByUsername(String username, String password) {
 
-        logger.debug("Getting trainer profile for username: {}", username);
+        logger.info("Getting trainer profile for username: {}", username);
 
         authenticationService.authenticateTrainee(username, password);
 
-        Optional<Trainer> trainer = trainerRepository.findByUsername(username);
+        Trainer trainer = trainerRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
-        if (trainer.isEmpty()) {
-            throw new UserNotFoundException("Trainer with username " + username + " does not exist");
-        }
-
-        return mappers.getTrainerResponse(trainer.get());
+        return mappers.getTrainerResponse(trainer);
     }
 
+//    @Transactional
+//    public boolean changeTrainerPassword(String username, String oldPassword, String newPassword) {
+//        logger.info("Changing password for trainer username: {}", username);
+//
+//        if (!authenticationService.authenticateTrainer(username, oldPassword)) {
+//            logger.warn("Authentication failed for trainer username: {}", username);
+//            return false;
+//        }
+//
+//        try {
+//            Optional<Trainer> trainerOpt = trainerRepository.findByUsername(username);
+//
+//            if (!trainerOpt.isPresent()) {
+//                logger.warn("Trainer not found for username: {}", username);
+//                return false;
+//            }
+//
+//            Trainer trainer = trainerOpt.get();
+//
+//            // Verify old password
+//            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
+//                logger.warn("Old password verification failed for trainer username: {}", username);
+//                return false;
+//            }
+//
+//            // Validate new password
+//            if (newPassword == null || newPassword.trim().isEmpty()) {
+//                logger.warn("New password cannot be empty");
+//                return false;
+//            }
+//
+//            trainer.getUser().setPassword(newPassword.trim());
+//            userRepository.save(trainer.getUser());
+//
+//            logger.info("Successfully changed password for trainer username: {}", username);
+//            return true;
+//
+//        } catch (Exception e) {
+//            logger.error("Error changing password for trainer username: {}", username, e);
+//            throw new RuntimeException("Failed to change password", e);
+//        }
+//    }
+
     @Transactional
-    public boolean changeTrainerPassword(String username, String oldPassword, String newPassword) {
-        logger.info("Changing password for trainer username: {}", username);
+    public TrainerResponse updateTrainerProfile(TrainerUpdateRequest req, String password) {
 
-        if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-            logger.warn("Authentication failed for trainer username: {}", username);
-            return false;
-        }
+        logger.info("Updating trainer profile for username: {}", req.username());
 
-        try {
-            Optional<Trainer> trainerOpt = trainerRepository.findByUsername(username);
+        authenticationService.authenticateTrainer(req.username(), password);
 
-            if (!trainerOpt.isPresent()) {
-                logger.warn("Trainer not found for username: {}", username);
-                return false;
-            }
+        Trainer trainer = trainerRepository.findByUsername(req.username())
+                .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
-            Trainer trainer = trainerOpt.get();
+        User user = trainer.getUser();
 
-            // Verify old password
-            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-                logger.warn("Old password verification failed for trainer username: {}", username);
-                return false;
-            }
+        user.setFirstName(req.firstName().trim());
+        user.setLastName(req.lastName().trim());
+        user.setIsActive(req.isActive());
+        trainer.setSpecialization(req.specialization());
 
-            // Validate new password
-            if (newPassword == null || newPassword.trim().isEmpty()) {
-                logger.warn("New password cannot be empty");
-                return false;
-            }
+        userRepository.save(user);
+        Trainer updatedTrainer = trainerRepository.save(trainer);
 
-            trainer.getUser().setPassword(newPassword.trim());
-            userRepository.save(trainer.getUser());
-
-            logger.info("Successfully changed password for trainer username: {}", username);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error changing password for trainer username: {}", username, e);
-            throw new RuntimeException("Failed to change password", e);
-        }
-    }
-
-    @Transactional
-    public Optional<Trainer> updateTrainerProfile(String username, String password,
-                                                  String newFirstName, String newLastName,
-                                                  TrainingType newSpecialization, Boolean isActive) {
-        logger.info("Updating trainer profile for username: {}", username);
-
-        try {
-            if (!authenticationService.authenticateTrainer(username, password)) {
-                logger.warn("Authentication failed for trainer username: {}", username);
-                return Optional.empty();
-            }
-
-            Optional<Trainer> trainerOpt = trainerRepository.findByUsername(username);
-            if (!trainerOpt.isPresent()) {
-                logger.warn("Trainer not found for username: {}", username);
-                return Optional.empty();
-            }
-
-            Trainer trainer = trainerOpt.get();
-            User user = trainer.getUser();
-
-            // Update fields if provided
-            if (newFirstName != null && !newFirstName.trim().isEmpty()) {
-                user.setFirstName(newFirstName.trim());
-            }
-
-            if (newLastName != null && !newLastName.trim().isEmpty()) {
-                user.setLastName(newLastName.trim());
-            }
-
-            if (isActive != null) {
-                user.setIsActive(isActive);
-            }
-
-            if (newSpecialization != null) {
-                trainer.setSpecialization(newSpecialization);
-            }
-
-            userRepository.save(user);
-            Trainer updatedTrainer = trainerRepository.save(trainer);
-
-            logger.info("Successfully updated trainer profile for username: {}", username);
-            return Optional.of(updatedTrainer);
-
-        } catch (Exception e) {
-            logger.error("Error updating trainer profile for username: {}", username, e);
-            throw new RuntimeException("Failed to update trainer profile", e);
-        }
+        logger.info("Successfully updated trainer profile for username: {}", req.username());
+        return mappers.getTrainerResponse(updatedTrainer);
     }
 
     @Transactional

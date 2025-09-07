@@ -1,7 +1,9 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.dto.response.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeResponse;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
@@ -64,57 +66,54 @@ public class TraineeServiceImpl implements TraineeService {
         return new RegistrationResponse(username, password);
     }
 
-    public TraineeResponse getTraineeProfileByUsername(String username, String password) {
+    public TraineeProfileResponse getTraineeProfileByUsername(String username, String password) {
 
-        logger.debug("Getting trainee profile for username: {}", username);
+        logger.info("Getting trainee profile for username: {}", username);
 
         authenticationService.authenticateTrainee(username, password);
 
-        Optional<Trainee> trainee = traineeRepository.findByUsername(username);
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
-        if (trainee.isEmpty()) {
-            throw new UserNotFoundException("Trainee with username " + username + " does not exist");
-        }
-
-        return mappers.getTraineeResponse(trainee.get());
+        return mappers.getTraineeProfileResponse(trainee);
     }
 
-    public boolean changeTraineePassword(String username, String oldPassword, String newPassword) {
-        logger.info("Changing password for trainer username: {}", username);
-
-        try {
-            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(username);
-
-            if (!traineeOpt.isPresent()) {
-                logger.warn("Trainer not found for username: {}", username);
-                return false;
-            }
-
-            Trainee trainee = traineeOpt.get();
-
-            // Verify old password
-            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-                logger.warn("Old password verification failed for trainer username: {}", username);
-                return false;
-            }
-
-            // Validate new password
-            if (newPassword == null || newPassword.trim().isEmpty()) {
-                logger.warn("New password cannot be empty");
-                return false;
-            }
-
-            trainee.getUser().setPassword(newPassword.trim());
-            userRepository.save(trainee.getUser());
-
-            logger.info("Successfully changed password for trainer username: {}", username);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error changing password for trainer username: {}", username, e);
-            throw new RuntimeException("Failed to change password", e);
-        }
-    }
+//    public boolean changeTraineePassword(String username, String oldPassword, String newPassword) {
+//        logger.info("Changing password for trainer username: {}", username);
+//
+//        try {
+//            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(username);
+//
+//            if (!traineeOpt.isPresent()) {
+//                logger.warn("Trainer not found for username: {}", username);
+//                return false;
+//            }
+//
+//            Trainee trainee = traineeOpt.get();
+//
+//            // Verify old password
+//            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
+//                logger.warn("Old password verification failed for trainer username: {}", username);
+//                return false;
+//            }
+//
+//            // Validate new password
+//            if (newPassword == null || newPassword.trim().isEmpty()) {
+//                logger.warn("New password cannot be empty");
+//                return false;
+//            }
+//
+//            trainee.getUser().setPassword(newPassword.trim());
+//            userRepository.save(trainee.getUser());
+//
+//            logger.info("Successfully changed password for trainer username: {}", username);
+//            return true;
+//
+//        } catch (Exception e) {
+//            logger.error("Error changing password for trainer username: {}", username, e);
+//            throw new RuntimeException("Failed to change password", e);
+//        }
+//    }
 
     public boolean activateDeactivateTrainee(String username, String password, boolean active) {
         logger.info("{} trainer with username: {}", active ? "Activating" : "Deactivating", username);
@@ -153,78 +152,48 @@ public class TraineeServiceImpl implements TraineeService {
         }
     }
 
-    public Optional<Trainee> updateTraineeProfile(String username, String password,
-                                                  String newFirstName, String newLastName,
-                                                  LocalDate newDateOfBirth, String newAddress,
-                                                  Boolean isActive) {
-        logger.info("Updating trainer profile for username: {}", username);
+    public TraineeResponse updateTraineeProfile(TraineeUpdateRequest req, String password) {
 
-        try {
-            if (!authenticationService.authenticateTrainer(username, password)) {
-                logger.warn("Authentication failed for trainer username: {}", username);
-                return Optional.empty();
-            }
+        logger.info("Updating trainer profile for username: {}", req.username());
 
-            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(username);
-            if (!traineeOpt.isPresent()) {
-                logger.warn("Trainer not found for username: {}", username);
-                return Optional.empty();
-            }
+        authenticationService.authenticateTrainee(req.username(), password);
 
-            Trainee trainee = traineeOpt.get();
-            User user = trainee.getUser();
+        Trainee trainee = traineeRepository.findByUsername(req.username())
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
-            // Update fields if provided
-            if (newFirstName != null && !newFirstName.trim().isEmpty()) {
-                user.setFirstName(newFirstName.trim());
-            }
+        User user = trainee.getUser();
 
-            if (newLastName != null && !newLastName.trim().isEmpty()) {
-                user.setLastName(newLastName.trim());
-            }
+        user.setFirstName(req.firstName().trim());
+        user.setLastName(req.lastName().trim());
+        user.setIsActive(req.isActive());
 
-            if (isActive != null) {
-                user.setIsActive(isActive);
-            }
-
-            userRepository.save(user);
-            Trainee updatedTrainee = traineeRepository.save(trainee);
-
-            logger.info("Successfully updated trainer profile for username: {}", username);
-            return Optional.of(updatedTrainee);
-
-        } catch (Exception e) {
-            logger.error("Error updating trainer profile for username: {}", username, e);
-            throw new RuntimeException("Failed to update trainer profile", e);
+        if (req.dateOfBirth() != null) {
+            trainee.setDateOfBirth(req.dateOfBirth());
         }
+        if (req.address() != null && !req.address().trim().isEmpty()) {
+            trainee.setAddress(req.address().trim());
+        }
+
+        userRepository.save(user);
+        Trainee updatedTrainee = traineeRepository.save(trainee);
+
+        logger.info("Successfully updated trainer profile for username: {}", req.username());
+
+        return mappers.getTraineeResponse(updatedTrainee);
     }
 
-    public boolean deleteTraineeProfile(String username, String password) {
+    public void deleteTraineeProfile(String username, String password) {
+
         logger.info("Deleting trainee profile for username: {}", username);
 
-        try {
-            if (!authenticationService.authenticateTrainee(username, password)) {
-                logger.warn("Authentication failed for trainee username: {}", username);
-                return false;
-            }
+        authenticationService.authenticateTrainee(username, password);
 
-            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(username);
-            if (!traineeOpt.isPresent()) {
-                logger.warn("Trainee not found for username: {}", username);
-                return false;
-            }
+        Trainee trainee = traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
-            Trainee trainee = traineeOpt.get();
+        traineeRepository.delete(trainee);
 
-            traineeRepository.delete(trainee);
-
-            logger.info("Successfully deleted trainee profile and associated trainings for username: {}", username);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error deleting trainee profile for username: {}", username, e);
-            throw new RuntimeException("Failed to delete trainee profile", e);
-        }
+        logger.info("Successfully deleted trainee profile and associated trainings for username: {}", username);
     }
 
     public List<Trainer> findNonAssignedTrainers(String traineeUsername, String password) {
