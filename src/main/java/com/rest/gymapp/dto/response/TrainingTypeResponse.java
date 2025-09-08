@@ -1,6 +1,7 @@
 package com.rest.gymapp.dto.response;
 
-import com.rest.gymapp.dto.response.trainer.TrainerResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
+import com.rest.gymapp.dto.response.training.TrainingResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -16,7 +17,7 @@ public class TrainingTypeResponse {
 
     private Set<TrainingResponse> trainingResponses;
 
-    private Set<TrainerResponse> trainerResponses;
+    private Set<TrainerProfileResponse> trainerProfileRespons;
 
     public TrainingTypeResponse(Long id, String trainingTypeName) {
         this.id = id;

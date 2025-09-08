@@ -1,7 +1,6 @@
 package com.rest.gymapp.service;
 
-import com.rest.gymapp.dto.request.TrainingRequest;
-import com.rest.gymapp.model.Training;
+import com.rest.gymapp.dto.request.training.TrainingRequest;
 
 
 public interface TrainingService {

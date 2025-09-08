@@ -1,38 +1,36 @@
 package com.rest.gymapp.dto.response.trainer;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.rest.gymapp.dto.response.TrainingTypeResponse;
 import com.rest.gymapp.dto.response.UserResponse;
-import com.rest.gymapp.dto.response.trainee.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeResponseForGetTrainer;
 import lombok.Data;
 
 import java.util.Set;
 
 @Data
-public class TrainerResponse {
+public class TrainerProfileResponse {
 
     private String firstName; // may remove
 
     private String lastName; // may remove
 
-    private String username; // may remove
-
     private TrainingTypeResponse specialization;
+
+    private Boolean isActive;
 
     private UserResponse userResponse; // remove if we keep firstname, lastname and username fields.
 
-    @JsonBackReference
-    Set<TraineeResponse> traineeResponses;
+    Set<TraineeResponseForGetTrainer> traineeResponses;
 
-    public TrainerResponse(TrainingTypeResponse specialization, UserResponse userResponse) {
+    public TrainerProfileResponse(TrainingTypeResponse specialization, UserResponse userResponse) {
         this.specialization = specialization;
         this.userResponse = userResponse;
     }
 
-    public TrainerResponse(String firstName, String lastName, String username, TrainingTypeResponse specialization) {
+    public TrainerProfileResponse(String firstName, String lastName, TrainingTypeResponse specialization, Boolean isActive) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.username = username;
         this.specialization = specialization;
+        this.isActive = isActive;
     }
 }

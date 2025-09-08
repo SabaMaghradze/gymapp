@@ -1,6 +1,6 @@
 package com.rest.gymapp.controller;
 
-import com.rest.gymapp.dto.request.TrainingRequest;
+import com.rest.gymapp.dto.request.training.TrainingRequest;
 import com.rest.gymapp.service.TrainingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

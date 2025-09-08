@@ -1,6 +1,6 @@
 package com.rest.gymapp.service.impl;
 
-import com.rest.gymapp.dto.request.TrainingRequest;
+import com.rest.gymapp.dto.request.training.TrainingRequest;
 import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.Trainee;

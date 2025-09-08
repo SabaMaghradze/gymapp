@@ -1,9 +1,14 @@
 package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
+import com.rest.gymapp.dto.request.trainee.UpdateTraineeTrainersRequest;
+import com.rest.gymapp.dto.request.training.TraineeTrainingsRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
-import com.rest.gymapp.dto.response.trainee.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeUpdateResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
+import com.rest.gymapp.dto.response.training.TrainingResponse;
+import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
@@ -15,16 +20,14 @@ import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.utils.CredentialsGenerator;
 import com.rest.gymapp.utils.Mappers;
-import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -152,7 +155,7 @@ public class TraineeServiceImpl implements TraineeService {
         }
     }
 
-    public TraineeResponse updateTraineeProfile(TraineeUpdateRequest req, String password) {
+    public TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest req, String password) {
 
         logger.info("Updating trainer profile for username: {}", req.username());
 
@@ -179,7 +182,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         logger.info("Successfully updated trainer profile for username: {}", req.username());
 
-        return mappers.getTraineeResponse(updatedTrainee);
+        return mappers.getTraineeUpdateResponse(updatedTrainee);
     }
 
     public void deleteTraineeProfile(String username, String password) {
@@ -196,75 +199,75 @@ public class TraineeServiceImpl implements TraineeService {
         logger.info("Successfully deleted trainee profile and associated trainings for username: {}", username);
     }
 
-    public List<Trainer> findNonAssignedTrainers(String traineeUsername, String password) {
-        logger.info("Searching for all the trainers that are not assigned to this specific trainee: {}", traineeUsername);
+    public List<TrainerResponseBasic> findNonAssignedTrainers(String traineeUsername, String password) {
 
-        try {
-            if (!authenticationService.authenticateTrainee(traineeUsername, password)) {
-                logger.warn("Authentication failed for trainee username: {}", traineeUsername);
-                return Collections.emptyList();
-            }
+        logger.info("Searching for all the trainers that are not assigned to trainee: {}", traineeUsername);
 
-            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(traineeUsername);
-            if (!traineeOpt.isPresent()) {
-                logger.warn("Trainee not found for username: {}", traineeUsername);
-                return Collections.emptyList();
-            }
+        authenticationService.authenticateTrainee(traineeUsername, password);
 
-            List<Trainer> trainers = traineeRepository.findTrainersNotAssignedToTrainee(traineeUsername);
+        Trainee trainee = traineeRepository.findByUsername(traineeUsername)
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
-            if (trainers == null || trainers.isEmpty()) {
-                logger.warn("No trainers found: {}", traineeUsername);
-                Collections.emptyList();
-            }
+        List<Trainer> trainers = traineeRepository.findTrainersNotAssignedToTrainee(traineeUsername);
 
-            logger.info("Successfully fetched all the trainers: {}", traineeUsername);
-
-            return trainers;
-
-        } catch (PersistenceException e) {
-            logger.error("Failed to fetch trainers: {}", traineeUsername, e);
-            throw new PersistenceException(e);
+        if (trainers == null || trainers.isEmpty()) {
+            logger.warn("No trainers found: {}", traineeUsername);
+            throw new ResourceNotFoundException("Failed to find trainers");
         }
+
+        logger.info("Successfully fetched all the trainers: {}", traineeUsername);
+
+        List<TrainerResponseBasic> responses = new ArrayList<>();
+
+        for (Trainer trainer : trainers) {
+            responses.add(mappers.getTrainerResponseBasic(trainer));
+        }
+
+        return responses;
     }
 
-    public List<Training> getTraineeTrainingsByCriteria(
-            String traineeUsername,
-            String password,
-            LocalDate fromDate,
-            LocalDate toDate,
-            String trainerName,
-            String trainingTypeName
-    ) {
-        logger.info("Fetching trainings for trainee [{}] with criteria: fromDate={}, toDate={}, trainerName={}, trainingTypeName={}",
-                traineeUsername, fromDate, toDate, trainerName, trainingTypeName);
+    public List<TrainingResponse> findTraineeTrainings(TraineeTrainingsRequest req, String password) {
 
-        try {
-            if (!authenticationService.authenticateTrainee(traineeUsername, password)) {
-                logger.warn("Authentication failed for trainee: {}", traineeUsername);
-                return Collections.emptyList();
-            }
+        logger.info("Fetching trainings for trainee: {}", req.traineeUsername());
 
-            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(traineeUsername);
-            if (!traineeOpt.isPresent()) {
-                logger.warn("Trainee not found for username: {}", traineeUsername);
-                return Collections.emptyList();
-            }
+        authenticationService.authenticateTrainee(req.traineeUsername(), password);
 
-            List<Training> trainings = traineeRepository.findTrainingsByTraineeUsernameWithCriteria(
-                    traineeUsername, fromDate, toDate, trainerName, trainingTypeName);
+        Trainee trainee = traineeRepository.findByUsername(req.traineeUsername())
+                .orElseThrow(() -> new UserNotFoundException("Failed to find user"));
 
-            if (trainings == null || trainings.isEmpty()) {
-                logger.info("No trainings found for trainee [{}] with given criteria", traineeUsername);
-                return Collections.emptyList();
-            }
+        List<Training> trainings = traineeRepository.findTrainingsByTraineeUsernameWithCriteria(
+                req.traineeUsername(), req.fromDate(), req.toDate(), req.trainerName(), req.trainingType().getTrainingTypeName()
+        );
 
-            logger.info("Found {} trainings for trainee [{}]", trainings.size(), traineeUsername);
-            return trainings;
+        if (trainings == null || trainings.isEmpty()) {
+            logger.info("No trainings found for trainee [{}] with given criteria", req.traineeUsername());
+            throw new ResourceNotFoundException("Failed to find trainings for the user");
+;        }
 
-        } catch (Exception e) {
-            logger.error("Error while fetching trainings for trainee [{}]", traineeUsername, e);
-            throw new RuntimeException("Failed to fetch trainings", e);
+        logger.info("Found {} trainings for trainee [{}]", trainings.size(), req.traineeUsername());
+        return trainings.stream()
+                .map(mappers::getTrainingResponse)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
+    public List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String password) {
+
+        logger.info("Fetching trainers of trainee: {}", req.username());
+
+        authenticationService.authenticateTrainee(req.username(), password);
+
+        Trainee trainee = traineeRepository.findByUsername(req.username())
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
+
+        Set<Trainer> existingTrainers = trainee.getTrainers();
+
+        if (existingTrainers.isEmpty()) {
+            throw new ResourceNotFoundException("Failed to find trainers for this trainee");
         }
+
+        return existingTrainers.stream()
+                .map(mappers::getTrainerResponseBasic)
+                .collect(Collectors.toUnmodifiableList());
     }
 }

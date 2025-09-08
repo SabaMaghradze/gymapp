@@ -1,9 +1,13 @@
 package com.rest.gymapp.service;
 
 import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
+import com.rest.gymapp.dto.request.trainee.UpdateTraineeTrainersRequest;
+import com.rest.gymapp.dto.request.training.TraineeTrainingsRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
-import com.rest.gymapp.dto.response.trainee.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeUpdateResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
+import com.rest.gymapp.dto.response.training.TrainingResponse;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
 
@@ -20,20 +24,15 @@ public interface TraineeService {
 
 //    boolean changeTraineePassword(String username, String oldPassword, String newPassword);
 
-    TraineeResponse updateTraineeProfile(TraineeUpdateRequest request, String password);
+    TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest request, String password);
 
     boolean activateDeactivateTrainee(String username, String password, boolean active);
 
     void deleteTraineeProfile(String username, String password);
 
-    List<Trainer> findNonAssignedTrainers(String traineeUsername, String password);
+    List<TrainerResponseBasic> findNonAssignedTrainers(String traineeUsername, String password);
 
-    List<Training> getTraineeTrainingsByCriteria(
-            String traineeUsername,
-            String password,
-            LocalDate fromDate,
-            LocalDate toDate,
-            String trainerName,
-            String trainingTypeName
-    );
+    List<TrainingResponse> findTraineeTrainings(TraineeTrainingsRequest req, String password);
+
+    List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String password);
 }

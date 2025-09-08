@@ -1,7 +1,6 @@
 package com.rest.gymapp.dto.response.trainee;
 
-import com.rest.gymapp.dto.response.trainer.TrainerResponse;
-import com.rest.gymapp.dto.response.trainer.TrainerResponseForTraineeProfile;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -20,7 +19,7 @@ public class TraineeProfileResponse {
 
     private Boolean isActive;
 
-    private Set<TrainerResponseForTraineeProfile> trainerResponses;
+    private Set<TrainerResponseBasic> trainerResponses;
 
     public TraineeProfileResponse(String firstName, String lastName, LocalDate dateOfBirth, String address, Boolean isActive) {
         this.firstName = firstName;

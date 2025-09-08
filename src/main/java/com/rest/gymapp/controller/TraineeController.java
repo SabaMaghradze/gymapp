@@ -1,17 +1,22 @@
 package com.rest.gymapp.controller;
 
-
 import com.rest.gymapp.dto.request.trainee.TraineeRegistrationRequest;
 import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
+import com.rest.gymapp.dto.request.trainee.UpdateTraineeTrainersRequest;
+import com.rest.gymapp.dto.request.training.TraineeTrainingsRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
-import com.rest.gymapp.dto.response.trainee.TraineeResponse;
+import com.rest.gymapp.dto.response.trainee.TraineeUpdateResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
+import com.rest.gymapp.dto.response.training.TrainingResponse;
 import com.rest.gymapp.service.TraineeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,8 +47,8 @@ public class TraineeController {
     }
 
     @PutMapping("/update-trainee")
-    public ResponseEntity<TraineeResponse> updateTrainee(@Valid @RequestBody TraineeUpdateRequest req,
-                                                         @RequestParam String password) {
+    public ResponseEntity<TraineeUpdateResponse> updateTrainee(@Valid @RequestBody TraineeUpdateRequest req,
+                                                               @RequestParam String password) {
         return ResponseEntity.status(HttpStatus.OK).body(traineeService.updateTraineeProfile(req, password));
     }
 
@@ -52,5 +57,29 @@ public class TraineeController {
                                            @RequestParam String password) {
         traineeService.deleteTraineeProfile(username, password);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/trainee/non-assigned-trainers")
+    public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(
+            @RequestParam String username,
+            @RequestParam String password
+    ) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(traineeService.findNonAssignedTrainers(username, password));
+    }
+
+    @PutMapping("/trainee/update-trainers")
+    public ResponseEntity<List<TrainerResponseBasic>> updateTrainers(
+            @Valid @RequestBody UpdateTraineeTrainersRequest req,
+            @RequestParam String password
+    ) {
+        return ResponseEntity.ok(traineeService.updateTraineeTrainers(req, password));
+    }
+
+    public ResponseEntity<List<TrainingResponse>> getTraineeTrainings(
+            @Valid @RequestBody TraineeTrainingsRequest req,
+            @RequestParam String password
+            ) {
+        return ResponseEntity.ok(traineeService.findTraineeTrainings(req, password));
     }
 }

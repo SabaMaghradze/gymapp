@@ -2,7 +2,8 @@ package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.dto.request.trainer.TrainerUpdateRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.dto.response.trainer.TrainerResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.*;
 import com.rest.gymapp.repository.TrainerRepository;
@@ -61,7 +62,7 @@ public class TrainerServiceImpl implements TrainerService {
         return new RegistrationResponse(username, password);
     }
 
-    public TrainerResponse getTrainerByUsername(String username, String password) {
+    public TrainerProfileResponse getTrainerByUsername(String username, String password) {
 
         logger.info("Getting trainer profile for username: {}", username);
 
@@ -70,7 +71,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
-        return mappers.getTrainerResponse(trainer);
+        return mappers.getTrainerProfileResponse(trainer);
     }
 
 //    @Transactional
@@ -117,7 +118,7 @@ public class TrainerServiceImpl implements TrainerService {
 //    }
 
     @Transactional
-    public TrainerResponse updateTrainerProfile(TrainerUpdateRequest req, String password) {
+    public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String password) {
 
         logger.info("Updating trainer profile for username: {}", req.username());
 
@@ -137,7 +138,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer updatedTrainer = trainerRepository.save(trainer);
 
         logger.info("Successfully updated trainer profile for username: {}", req.username());
-        return mappers.getTrainerResponse(updatedTrainer);
+        return mappers.getTrainerUpdateResponse(updatedTrainer);
     }
 
     @Transactional

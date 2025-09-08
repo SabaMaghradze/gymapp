@@ -1,8 +1,8 @@
 package com.rest.gymapp.dto.response.trainee;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.rest.gymapp.dto.response.trainer.TrainerResponse;
 import com.rest.gymapp.dto.response.UserResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.Set;
 
 @AllArgsConstructor
 @Data
-public class TraineeResponse {
+public class TraineeUpdateResponse {
 
     private String username;
 
@@ -26,17 +26,17 @@ public class TraineeResponse {
     private Boolean isActive;
 
     @JsonBackReference
-    private Set<TrainerResponse> trainerResponses;
+    private Set<TrainerResponseBasic> trainerProfileRespons;
 
     private UserResponse userResponse; // remove if we keep the fields also existent in user response.
 
-    public TraineeResponse(LocalDate dateOfBirth, String address, UserResponse userResponse) {
+    public TraineeUpdateResponse(LocalDate dateOfBirth, String address, UserResponse userResponse) {
         this.dateOfBirth = dateOfBirth;
         this.address = address;
         this.userResponse = userResponse;
     }
 
-    public TraineeResponse(String username, String firstName, String lastName, LocalDate dateOfBirth, String address, Boolean isActive) {
+    public TraineeUpdateResponse(String username, String firstName, String lastName, LocalDate dateOfBirth, String address, Boolean isActive) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;

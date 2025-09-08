@@ -3,7 +3,8 @@ package com.rest.gymapp.controller;
 import com.rest.gymapp.dto.request.trainer.TrainerRegistrationRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerUpdateRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
-import com.rest.gymapp.dto.response.trainer.TrainerResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
+import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
 import com.rest.gymapp.service.TrainerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,17 +33,16 @@ public class TrainerController {
     }
 
     @GetMapping("/trainer")
-    public ResponseEntity<TrainerResponse> getTrainer(@RequestParam String username,
-                                                      @RequestParam String password) {
+    public ResponseEntity<TrainerProfileResponse> getTrainer(@RequestParam String username,
+                                                             @RequestParam String password) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(trainerService.getTrainerByUsername(username, password));
     }
 
     @PutMapping("/update-trainer")
-    public ResponseEntity<TrainerResponse> updateTrainer(@Valid @RequestBody TrainerUpdateRequest req,
-                                                         @RequestParam String password) {
+    public ResponseEntity<TrainerUpdateResponse> updateTrainer(@Valid @RequestBody TrainerUpdateRequest req,
+                                                               @RequestParam String password) {
 
         return ResponseEntity.status(HttpStatus.OK).body(trainerService.updateTrainerProfile(req, password));
     }
-
 }

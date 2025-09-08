@@ -4,7 +4,7 @@ import com.rest.gymapp.dto.response.TrainingTypeResponse;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class TrainerResponseForTraineeProfile {
+public class TrainerResponseBasic {
 
     private String firstName;
 

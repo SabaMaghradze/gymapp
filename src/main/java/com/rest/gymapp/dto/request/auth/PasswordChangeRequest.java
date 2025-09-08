@@ -1,4 +1,4 @@
-package com.rest.gymapp.dto.request;
+package com.rest.gymapp.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,7 +1,7 @@
 package com.rest.gymapp.controller;
 
-import com.rest.gymapp.dto.request.LoginRequest;
-import com.rest.gymapp.dto.request.PasswordChangeRequest;
+import com.rest.gymapp.dto.request.auth.LoginRequest;
+import com.rest.gymapp.dto.request.auth.PasswordChangeRequest;
 import com.rest.gymapp.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
