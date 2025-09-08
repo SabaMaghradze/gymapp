@@ -1,15 +1,12 @@
 package com.rest.gymapp.dto.response.training;
 
-import com.rest.gymapp.dto.response.TrainingTypeResponse;
+import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.time.LocalDate;
 
-
 @AllArgsConstructor
-@Data
-public class TrainingResponse {
+public class TrainingResponseForTrainer {
 
     private String trainingName;
 
@@ -19,5 +16,5 @@ public class TrainingResponse {
 
     private Number duration;
 
-    private String trainerName;
+    private String traineeName;
 }

@@ -7,7 +7,9 @@ import com.rest.gymapp.dto.response.trainee.TraineeResponseForGetTrainer;
 import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
 import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
-import com.rest.gymapp.dto.response.training.TrainingResponse;
+import com.rest.gymapp.dto.response.training.TrainingResponseForTrainee;
+import com.rest.gymapp.dto.response.training.TrainingResponseForTrainer;
+import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
 import com.rest.gymapp.model.*;
 
 import java.util.HashSet;
@@ -91,8 +93,8 @@ public class Mappers {
                 trainingType.getTrainingTypeName());
     }
 
-    public TrainingResponse getTrainingResponse(Training training) {
-        return new TrainingResponse(
+    public TrainingResponseForTrainee getTrainingResponseForTrainee(Training training) {
+        return new TrainingResponseForTrainee(
                 training.getTrainingName(),
                 training.getTrainingDate(),
                 getTrainingTypeResponse(training.getTrainingType()),
@@ -168,6 +170,17 @@ public class Mappers {
                 trainer.getUser().getLastName(),
                 trainer.getUser().getUsername(),
                 getTrainingTypeResponse(trainer.getSpecialization())
+        );
+    }
+
+    // for findTrainerTrainingsByCriteria
+    public TrainingResponseForTrainer getTrainingResponseForTrainer(Training training) {
+        return new TrainingResponseForTrainer(
+                training.getTrainingName(),
+                training.getTrainingDate(),
+                getTrainingTypeResponse(training.getTrainingType()),
+                training.getTrainingDuration(),
+                training.getTrainee().getUser().getUsername()
         );
     }
 }

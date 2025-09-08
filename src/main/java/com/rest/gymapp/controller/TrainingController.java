@@ -1,15 +1,12 @@
 package com.rest.gymapp.controller;
 
-import com.rest.gymapp.dto.request.training.TrainingRequest;
+import com.rest.gymapp.dto.request.training.TrainingRegistrationRequest;
 import com.rest.gymapp.service.TrainingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,8 +16,9 @@ public class TrainingController {
     private final TrainingService trainingService;
 
     @PostMapping("/add-training")
-    public ResponseEntity<?> addTraining(@Valid @RequestBody TrainingRequest req) {
-        trainingService.addTraining(req);
+    public ResponseEntity<?> addTraining(@Valid @RequestBody TrainingRegistrationRequest req,
+                                         @RequestParam String password) {
+        trainingService.addTraining(req, password);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

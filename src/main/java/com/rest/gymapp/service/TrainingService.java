@@ -1,9 +1,9 @@
 package com.rest.gymapp.service;
 
-import com.rest.gymapp.dto.request.training.TrainingRequest;
-
+import com.rest.gymapp.dto.request.training.TrainingRegistrationRequest;
 
 public interface TrainingService {
 
-    void addTraining(TrainingRequest trainingRequest);
+    void addTraining(TrainingRegistrationRequest req, String password);
+
 }

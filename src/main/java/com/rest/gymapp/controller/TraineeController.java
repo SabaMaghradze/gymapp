@@ -1,5 +1,6 @@
 package com.rest.gymapp.controller;
 
+import com.rest.gymapp.dto.request.trainee.TraineeActivationRequest;
 import com.rest.gymapp.dto.request.trainee.TraineeRegistrationRequest;
 import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
 import com.rest.gymapp.dto.request.trainee.UpdateTraineeTrainersRequest;
@@ -8,7 +9,7 @@ import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeProfileResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeUpdateResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
-import com.rest.gymapp.dto.response.training.TrainingResponse;
+import com.rest.gymapp.dto.response.training.TrainingResponseForTrainee;
 import com.rest.gymapp.service.TraineeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -76,10 +77,18 @@ public class TraineeController {
         return ResponseEntity.ok(traineeService.updateTraineeTrainers(req, password));
     }
 
-    public ResponseEntity<List<TrainingResponse>> getTraineeTrainings(
+    @GetMapping("/trainee/trainings")
+    public ResponseEntity<List<TrainingResponseForTrainee>> getTraineeTrainings(
             @Valid @RequestBody TraineeTrainingsRequest req,
             @RequestParam String password
             ) {
         return ResponseEntity.ok(traineeService.findTraineeTrainings(req, password));
+    }
+
+    @PatchMapping("/trainee/activate-deactivate")
+    public ResponseEntity<?> changeActivationStatus(@Valid @RequestBody TraineeActivationRequest req,
+                                                 @RequestParam String password) {
+        traineeService.activateDeactivateTrainee(req, password);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

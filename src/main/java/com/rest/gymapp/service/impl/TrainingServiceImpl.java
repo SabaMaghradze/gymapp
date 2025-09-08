@@ -1,6 +1,6 @@
 package com.rest.gymapp.service.impl;
 
-import com.rest.gymapp.dto.request.training.TrainingRequest;
+import com.rest.gymapp.dto.request.training.TrainingRegistrationRequest;
 import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.Trainee;
@@ -30,12 +30,12 @@ public class TrainingServiceImpl implements TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
 
-    public void addTraining(TrainingRequest req) {
+    public void addTraining(TrainingRegistrationRequest req, String password) {
 
-        logger.info("Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}]",
-                req.traineeUsername(), req.trainerUsername(), req.trainingTypeName(), req.trainingDate());
+        logger.info("Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
+                req.traineeUsername(), req.trainerUsername(), req.trainingName(), req.trainingDate(), req.duration());
 
-        authenticationService.authenticateTrainee(req.traineeUsername(), req.password());
+        authenticationService.authenticateTrainee(req.traineeUsername(), password);
 
         Trainee trainee = traineeRepository.findByUsername(req.traineeUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found: " + req.traineeUsername()));
@@ -44,10 +44,10 @@ public class TrainingServiceImpl implements TrainingService {
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found: " + req.trainerUsername()));
 
         TrainingType trainingType = trainerRepository
-                .findByUsername(req.trainerUsername()).get()
+                .findByUsername(req.trainerUsername()).orElseThrow(() -> new ResourceNotFoundException("No such training type exists"))
                 .getSpecialization();
 
-        if (trainingType.getTrainingTypeName() != req.trainingTypeName() || trainingType == null) {
+        if (trainingType.getTrainingTypeName().equals(req.trainingName())) {
             throw new ResourceNotFoundException("This trainer does not offer that service");
         }
 
@@ -55,6 +55,7 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainee(trainee);
         training.setTrainer(trainer);
         training.setTrainingType(trainingType);
+        training.setTrainingName(req.trainingName());
         training.setTrainingDate(req.trainingDate());
 
         Training savedTraining = trainingRepository.save(training);

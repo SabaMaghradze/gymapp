@@ -1,6 +1,6 @@
 package com.rest.gymapp.dto.response.trainer;
 
-import com.rest.gymapp.dto.response.TrainingTypeResponse;
+import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
 import com.rest.gymapp.dto.response.UserResponse;
 import com.rest.gymapp.dto.response.trainee.TraineeResponseForGetTrainer;
 import lombok.Data;
