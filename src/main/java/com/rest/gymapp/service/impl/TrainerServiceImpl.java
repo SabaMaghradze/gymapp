@@ -1,6 +1,8 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.dto.request.auth.LoginRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerActivationRequest;
+import com.rest.gymapp.dto.request.trainer.TrainerRegistrationRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerUpdateRequest;
 import com.rest.gymapp.dto.request.training.TrainerTrainingsRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
@@ -11,6 +13,7 @@ import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.*;
 import com.rest.gymapp.repository.TrainerRepository;
+import com.rest.gymapp.repository.TrainingTypeRepository;
 import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TrainerService;
@@ -22,10 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,18 +39,21 @@ public class TrainerServiceImpl implements TrainerService {
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
+    private final TrainingTypeRepository trainingTypeRepository;
 
-    public RegistrationResponse createTrainerProfile(String firstName, String lastName,
-                                                     TrainingType specialization) {
+    public RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req) {
 
-        logger.info("Creating trainer profile for: {} {}", firstName, lastName);
+        logger.info("Creating trainer profile for: {} {}", req.firstName(), req.lastName());
 
-        String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
+        TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(req.specializationName())
+                .orElseThrow(() -> new ResourceNotFoundException("Training type not found"));
+
+        String username = credentialsGenerator.generateUsername(req.firstName(), req.lastName(), userRepository);
         String password = credentialsGenerator.generatePassword();
 
         User user = new User();
-        user.setFirstName(firstName.trim());
-        user.setLastName(lastName.trim());
+        user.setFirstName(req.firstName().trim());
+        user.setLastName(req.lastName().trim());
         user.setUsername(username);
         user.setPassword(password);
         user.setIsActive(true);
@@ -58,7 +61,8 @@ public class TrainerServiceImpl implements TrainerService {
         User savedUser = userRepository.save(user);
 
         Trainer trainer = new Trainer();
-        trainer.setSpecialization(specialization);
+
+        trainer.setSpecialization(trainingType);
         trainer.setUser(savedUser);
 
         Trainer savedTrainer = trainerRepository.save(trainer);
@@ -71,35 +75,44 @@ public class TrainerServiceImpl implements TrainerService {
 
         logger.info("Getting trainer profile for username: {}", username);
 
-        authenticationService.authenticateTrainee(username, password);
+        authenticationService.authenticateTrainer(username, password);
 
-        Trainer trainer = trainerRepository.findByUsername(username)
+        Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         return mappers.getTrainerProfileResponse(trainer);
     }
 
-    @Transactional
-    public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String password) {
+    public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password) {
 
-        logger.info("Updating trainer profile for username: {}", req.username());
+        logger.info("Updating trainer profile for username: {}", username);
 
-        authenticationService.authenticateTrainer(req.username(), password);
+        authenticationService.authenticateTrainer(username, password);
 
-        Trainer trainer = trainerRepository.findByUsername(req.username())
+        Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         User user = trainer.getUser();
 
+        if (!req.firstName().equals(user.getFirstName()) || !req.lastName().equals(user.getLastName())) {
+            String newUserName = credentialsGenerator.generateUsername(req.firstName(), req.lastName(), userRepository);
+            user.setUsername(newUserName);
+        }
+
         user.setFirstName(req.firstName().trim());
         user.setLastName(req.lastName().trim());
         user.setIsActive(req.isActive());
-        trainer.setSpecialization(req.specialization());
+
+        if (req.trainingType() != null) {
+            TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(req.trainingType().getTrainingTypeName())
+                    .orElseThrow(() -> new ResourceNotFoundException("No training type found"));
+            trainer.setSpecialization(trainingType);
+        }
 
         userRepository.save(user);
         Trainer updatedTrainer = trainerRepository.save(trainer);
 
-        logger.info("Successfully updated trainer profile for username: {}", req.username());
+        logger.info("Successfully updated trainer profile for username: {}", username);
         return mappers.getTrainerUpdateResponse(updatedTrainer);
     }
 
@@ -109,7 +122,7 @@ public class TrainerServiceImpl implements TrainerService {
 
         authenticationService.authenticateTrainer(req.username(), password);
 
-        Trainer trainer = trainerRepository.findByUsername(req.username())
+        Trainer trainer = trainerRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         if (trainer.getUser().getIsActive() == req.isActive()) {
@@ -129,7 +142,7 @@ public class TrainerServiceImpl implements TrainerService {
 
         authenticationService.authenticateTrainee(req.trainerUsername(), password);
 
-        Trainer trainer = trainerRepository.findByUsername(req.trainerUsername())
+        Trainer trainer = trainerRepository.findByUserUsername(req.trainerUsername())
                 .orElseThrow(() -> new UserNotFoundException("Failed to find trainer"));
 
         List<Training> trainings = trainerRepository.findTrainingsByTrainerUsernameWithCriteria(

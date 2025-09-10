@@ -1,8 +1,8 @@
 package com.rest.gymapp.utils;
 
 import com.rest.gymapp.repository.UserRepository;
-
 import java.security.SecureRandom;
+
 
 public class CredentialsGenerator {
 

@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/gymapp_rest
     username: costigan
-    password: billyjr
+    password: BillyCostigan
   jpa:
     database: POSTGRESQL
     show-sql: true

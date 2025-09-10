@@ -31,6 +31,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     public void authenticateUser(String username, String password) {
 
+        if (username.isEmpty() || password.isEmpty()) {
+            throw new InvalidCredentialsException("Please provide username and password");
+        }
+
         Optional<User> userOpt = userRepository.findByUsername(username);
 
         if (userOpt.isEmpty()) { // put isEmpty instead of isPresent

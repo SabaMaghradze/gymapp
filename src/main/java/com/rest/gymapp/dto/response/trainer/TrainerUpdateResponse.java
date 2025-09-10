@@ -11,21 +11,21 @@ public class TrainerUpdateResponse {
 
     private String username;
 
-    private String firstName; // may remove
+    private String firstName;
 
-    private String lastName; // may remove
+    private String lastName;
 
-    private TrainingTypeResponse specialization;
+    private TrainingTypeResponse trainingType;
 
     private Boolean isActive;
 
     private Set<TraineeResponseForGetTrainer> traineeResponses;
 
-    public TrainerUpdateResponse(String username, String firstName, String lastName, TrainingTypeResponse specialization, Boolean isActive) {
+    public TrainerUpdateResponse(String username, String firstName, String lastName, TrainingTypeResponse trainingType, Boolean isActive) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.specialization = specialization;
+        this.trainingType = trainingType;
         this.isActive = isActive;
     }
 }

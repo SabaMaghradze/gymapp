@@ -1,6 +1,8 @@
 package com.rest.gymapp.service.impl;
 
+import com.rest.gymapp.dto.request.trainingType.TrainingTypeRegistrationRequest;
 import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
+import com.rest.gymapp.exception.ResourceAlreadyExistsException;
 import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.model.TrainingType;
 import com.rest.gymapp.repository.TrainingTypeRepository;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,5 +44,19 @@ public class TrainingTypeImpl implements TrainingTypeService {
         return types.stream()
                 .map(mapper::getTrainingTypeResponse)
                 .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
+    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req) {
+
+        if (trainingTypeRepository.findByTrainingTypeName(req.trainingTypeName()).isPresent()) {
+            throw new ResourceAlreadyExistsException("Training Type already exists");
+        }
+
+        TrainingType savedTrainingType = trainingTypeRepository.save(
+                new TrainingType(req.trainingTypeName())
+        );
+
+        return mapper.getTrainingTypeResponse(savedTrainingType);
     }
 }

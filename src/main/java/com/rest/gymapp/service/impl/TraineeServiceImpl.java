@@ -76,7 +76,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(username, password);
 
-        Trainee trainee = traineeRepository.findByUsername(username)
+        Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         return mappers.getTraineeProfileResponse(trainee);
@@ -88,7 +88,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainer(req.username(), password);
 
-        Trainee trainee = traineeRepository.findByUsername(req.username())
+        Trainee trainee = traineeRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         if (trainee.getUser().getIsActive() == req.isActive()) {
@@ -110,7 +110,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(req.username(), password);
 
-        Trainee trainee = traineeRepository.findByUsername(req.username())
+        Trainee trainee = traineeRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         User user = trainee.getUser();
@@ -140,7 +140,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(username, password);
 
-        Trainee trainee = traineeRepository.findByUsername(username)
+        Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         traineeRepository.delete(trainee);
@@ -154,7 +154,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(traineeUsername, password);
 
-        Trainee trainee = traineeRepository.findByUsername(traineeUsername)
+        Trainee trainee = traineeRepository.findByUserUsername(traineeUsername)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         List<Trainer> trainers = traineeRepository.findTrainersNotAssignedToTrainee(traineeUsername);
@@ -181,7 +181,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(req.traineeUsername(), password);
 
-        Trainee trainee = traineeRepository.findByUsername(req.traineeUsername())
+        Trainee trainee = traineeRepository.findByUserUsername(req.traineeUsername())
                 .orElseThrow(() -> new UserNotFoundException("Failed to find user"));
 
         List<Training> trainings = traineeRepository.findTrainingsByTraineeUsernameWithCriteria(
@@ -207,7 +207,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         authenticationService.authenticateTrainee(req.username(), password);
 
-        Trainee trainee = traineeRepository.findByUsername(req.username())
+        Trainee trainee = traineeRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         Set<Trainer> existingTrainers = trainee.getTrainers();

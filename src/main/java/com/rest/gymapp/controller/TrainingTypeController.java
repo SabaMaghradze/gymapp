@@ -1,13 +1,12 @@
 package com.rest.gymapp.controller;
 
+import com.rest.gymapp.dto.request.trainingType.TrainingTypeRegistrationRequest;
 import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
 import com.rest.gymapp.service.TrainingTypeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -24,5 +23,11 @@ public class TrainingTypeController {
             @RequestParam String password
     ) {
         return ResponseEntity.ok(trainingTypeService.getAllTrainingTypes(username, password));
+    }
+
+    @PostMapping("/add-type")
+    public ResponseEntity<TrainingTypeResponse> addTrainingType(@RequestBody TrainingTypeRegistrationRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(trainingTypeService.addTrainingType(req));
     }
 }

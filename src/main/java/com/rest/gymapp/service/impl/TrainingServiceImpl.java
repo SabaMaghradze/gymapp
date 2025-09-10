@@ -37,14 +37,14 @@ public class TrainingServiceImpl implements TrainingService {
 
         authenticationService.authenticateTrainee(req.traineeUsername(), password);
 
-        Trainee trainee = traineeRepository.findByUsername(req.traineeUsername())
+        Trainee trainee = traineeRepository.findByUserUsername(req.traineeUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found: " + req.traineeUsername()));
 
-        Trainer trainer = trainerRepository.findByUsername(req.trainerUsername())
+        Trainer trainer = trainerRepository.findByUserUsername(req.trainerUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found: " + req.trainerUsername()));
 
         TrainingType trainingType = trainerRepository
-                .findByUsername(req.trainerUsername()).orElseThrow(() -> new ResourceNotFoundException("No such training type exists"))
+                .findByUserUsername(req.trainerUsername()).orElseThrow(() -> new ResourceNotFoundException("No such training type exists"))
                 .getSpecialization();
 
         if (trainingType.getTrainingTypeName().equals(req.trainingName())) {

@@ -27,27 +27,22 @@ public class TrainerController {
     @PostMapping("/register")
     public ResponseEntity<RegistrationResponse> registerTrainer(
             @Valid @RequestBody TrainerRegistrationRequest req) {
-
-        RegistrationResponse response = trainerService.createTrainerProfile(
-                req.firstName(),
-                req.lastName(),
-                req.specialization()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(trainerService.createTrainerProfile(req));
     }
 
+    // test this again after adding trainees to make sure there is trainee responses in the dto.
     @GetMapping("/trainer")
-    public ResponseEntity<TrainerProfileResponse> getTrainer(@RequestParam String username,
-                                                             @RequestParam String password) {
+    public ResponseEntity<TrainerProfileResponse> getTrainer(@RequestHeader String username,
+                                                             @RequestHeader String password) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(trainerService.getTrainerByUsername(username, password));
     }
 
     @PutMapping("/update-trainer")
     public ResponseEntity<TrainerUpdateResponse> updateTrainer(@Valid @RequestBody TrainerUpdateRequest req,
-                                                               @RequestParam String password) {
-        return ResponseEntity.status(HttpStatus.OK).body(trainerService.updateTrainerProfile(req, password));
+                                                               @RequestHeader String username,
+                                                               @RequestHeader String password) {
+        return ResponseEntity.status(HttpStatus.OK).body(trainerService.updateTrainerProfile(req, username, password));
     }
 
     @GetMapping("/trainer/trainings")
