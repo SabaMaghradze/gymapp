@@ -44,5 +44,5 @@ public class Training {
 
     @NotNull
     @Column(name = "training_duration", nullable = false)
-    private Number trainingDuration;
+    private Integer trainingDuration;
 }

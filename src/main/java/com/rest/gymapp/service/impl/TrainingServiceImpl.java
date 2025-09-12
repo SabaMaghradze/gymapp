@@ -10,6 +10,7 @@ import com.rest.gymapp.model.TrainingType;
 import com.rest.gymapp.repository.TraineeRepository;
 import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.TrainingRepository;
+import com.rest.gymapp.repository.TrainingTypeRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.service.TrainingService;
@@ -29,13 +30,17 @@ public class TrainingServiceImpl implements TrainingService {
     private final AuthenticationService authenticationService;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
 
-    public void addTraining(TrainingRegistrationRequest req, String password) {
+    public void addTraining(TrainingRegistrationRequest req, String username, String password) {
 
         logger.info("Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
                 req.traineeUsername(), req.trainerUsername(), req.trainingName(), req.trainingDate(), req.duration());
 
-        authenticationService.authenticateTrainee(req.traineeUsername(), password);
+        // I am considering that trainee himself/herself should be able to register the
+        // training of their choice, if trainer should have that privilege,
+        // then we will authenticate trainer instead of trainee.
+        authenticationService.authenticateTrainee(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(req.traineeUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found: " + req.traineeUsername()));
@@ -43,11 +48,10 @@ public class TrainingServiceImpl implements TrainingService {
         Trainer trainer = trainerRepository.findByUserUsername(req.trainerUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found: " + req.trainerUsername()));
 
-        TrainingType trainingType = trainerRepository
-                .findByUserUsername(req.trainerUsername()).orElseThrow(() -> new ResourceNotFoundException("No such training type exists"))
-                .getSpecialization();
+        TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(req.trainingName())
+                .orElseThrow(() -> new ResourceNotFoundException("No such training exists"));
 
-        if (trainingType.getTrainingTypeName().equals(req.trainingName())) {
+        if (!trainer.getSpecialization().getTrainingTypeName().equals(req.trainingName())) {
             throw new ResourceNotFoundException("This trainer does not offer that service");
         }
 
@@ -57,8 +61,13 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainingType(trainingType);
         training.setTrainingName(req.trainingName());
         training.setTrainingDate(req.trainingDate());
+        training.setTrainingDuration(req.duration().intValue());
 
         Training savedTraining = trainingRepository.save(training);
+
+        trainee.getTrainers().add(trainer);
+        trainer.getTrainees().add(trainee);
+        traineeRepository.save(trainee);
 
         logger.info("Training successfully created with ID [{}] for trainee [{}]",
                 savedTraining.getId(), req.traineeUsername());

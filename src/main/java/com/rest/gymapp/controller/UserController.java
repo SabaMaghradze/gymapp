@@ -15,12 +15,14 @@ public class UserController {
 
     private final AuthenticationService authenticationService;
 
+    // to test
     @GetMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest req) {
         authenticationService.authenticateUser(req.username(), req.password());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    // to test
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest req) {
         authenticationService.changePassword(req.username(), req.oldPassword(), req.newPassword());

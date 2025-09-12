@@ -1,8 +1,11 @@
 package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.exception.InvalidCredentialsException;
+import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.User;
+import com.rest.gymapp.repository.TraineeRepository;
+import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +21,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final UserRepository userRepository;
+    private final TraineeRepository traineeRepository;
+    private final TrainerRepository trainerRepository;
 
     public void authenticateTrainee(String username, String password) {
+
         logger.info("Authenticating trainee: {}", username);
+
         authenticateUser(username, password);
+
+        traineeRepository.findByUserUsername(username)
+                        .orElseThrow(() -> new ResourceNotFoundException("The user is not a trainee"));
     }
 
     public void authenticateTrainer(String username, String password) {
+
         logger.info("Authenticating trainer: {}", username);
+
         authenticateUser(username, password);
+
+        trainerRepository.findByUserUsername(username)
+                        .orElseThrow(() -> new InvalidCredentialsException("The user is not a trainer"));
     }
 
     public void authenticateUser(String username, String password) {
@@ -35,14 +50,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InvalidCredentialsException("Please provide username and password");
         }
 
-        Optional<User> userOpt = userRepository.findByUsername(username);
-
-        if (userOpt.isEmpty()) { // put isEmpty instead of isPresent
-            logger.warn("Authentication failed: User {} not found", username);
-            throw new InvalidCredentialsException("Invalid username or password");
-        }
-
-        User user = userOpt.get();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
         if (!user.getIsActive()) {
             logger.warn("Authentication failed: User {} is deactivated", username);

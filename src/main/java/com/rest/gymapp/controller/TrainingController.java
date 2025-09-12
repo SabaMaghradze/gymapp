@@ -10,15 +10,17 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/training")
+@RequestMapping("/api/trainings")
 public class TrainingController {
 
     private final TrainingService trainingService;
 
+    // done
     @PostMapping("/add-training")
     public ResponseEntity<?> addTraining(@Valid @RequestBody TrainingRegistrationRequest req,
-                                         @RequestParam String password) {
-        trainingService.addTraining(req, password);
+                                         @RequestHeader String username,
+                                         @RequestHeader String password) {
+        trainingService.addTraining(req, username, password);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

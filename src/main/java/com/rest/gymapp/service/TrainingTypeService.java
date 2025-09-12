@@ -9,5 +9,5 @@ public interface TrainingTypeService {
 
     List<TrainingTypeResponse> getAllTrainingTypes(String username, String password);
 
-    TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req);
+    TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password);
 }

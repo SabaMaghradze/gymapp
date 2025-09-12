@@ -25,8 +25,7 @@ public class TraineeUpdateResponse {
 
     private Boolean isActive;
 
-    @JsonBackReference
-    private Set<TrainerResponseBasic> trainerProfileRespons;
+    private Set<TrainerResponseBasic> trainerProfileResponse;
 
     private UserResponse userResponse; // remove if we keep the fields also existent in user response.
 

@@ -8,6 +8,8 @@ import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
 import com.rest.gymapp.dto.response.training.TrainingResponseForTrainer;
+
+import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainerService {
@@ -20,7 +22,12 @@ public interface TrainerService {
 
     void activateDeactivateTrainer(TrainerActivationRequest req, String password);
 
-    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(TrainerTrainingsRequest req, String password);
+    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String usename,
+                                                                    String password,
+                                                                    LocalDate fromDate,
+                                                                    LocalDate toDate,
+                                                                    String traineeName
+    );
 
 //    boolean changeTrainerPassword(String username, String oldPassword, String newPassword);
 }

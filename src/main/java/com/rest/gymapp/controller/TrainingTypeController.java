@@ -17,17 +17,21 @@ public class TrainingTypeController {
 
     private final TrainingTypeService trainingTypeService;
 
+    // done
     @GetMapping("/all-training-types")
     public ResponseEntity<List<TrainingTypeResponse>> getAllTrainingTypes(
-            @RequestParam String username,
-            @RequestParam String password
+            @RequestHeader String username,
+            @RequestHeader String password
     ) {
         return ResponseEntity.ok(trainingTypeService.getAllTrainingTypes(username, password));
     }
 
+    // done
     @PostMapping("/add-type")
-    public ResponseEntity<TrainingTypeResponse> addTrainingType(@RequestBody TrainingTypeRegistrationRequest req) {
+    public ResponseEntity<TrainingTypeResponse> addTrainingType(@RequestBody TrainingTypeRegistrationRequest req,
+                                                                @RequestHeader String username,
+                                                                @RequestHeader String password) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(trainingTypeService.addTrainingType(req));
+                .body(trainingTypeService.addTrainingType(req, username, password));
     }
 }

@@ -10,6 +10,6 @@ public record TrainingRegistrationRequest(
         @NotBlank String trainerUsername,
         @NotBlank String trainingName,
         @NotNull LocalDate trainingDate,
-        @NotNull Number duration
+        @NotNull Integer duration
 ) {
 }

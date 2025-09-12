@@ -47,7 +47,9 @@ public class TrainingTypeImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req) {
+    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password) {
+
+        authenticationService.authenticateTrainer(username, password);
 
         if (trainingTypeRepository.findByTrainingTypeName(req.trainingTypeName()).isPresent()) {
             throw new ResourceAlreadyExistsException("Training Type already exists");

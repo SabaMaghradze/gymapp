@@ -1,0 +1,5 @@
+Since we are not using spring security for authentication, I decided to require username
+and password through request headers since it is most appropriate approach to mimic
+real-world authentication flow (principal, JWT sessions, etc). so almost every request
+that requires authentication, includes username and password as separate function parameters,
+which will be put in request headers.

@@ -19,14 +19,17 @@ import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TrainerService;
 import com.rest.gymapp.utils.CredentialsGenerator;
 import com.rest.gymapp.utils.Mappers;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -136,26 +139,50 @@ public class TrainerServiceImpl implements TrainerService {
         logger.info("Successfully {} trainer with username: {}", req.isActive() ? "activated" : "deactivated", req.username());
     }
 
-    public List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(TrainerTrainingsRequest req, String password) {
+    public List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String username,
+                                                                           String password,
+                                                                           LocalDate fromDate,
+                                                                           LocalDate toDate,
+                                                                           String traineeName) {
 
-        logger.info("Fetching trainings for trainer: {}", req.trainerUsername());
+        logger.info("Fetching trainings for trainer: {}", username);
 
-        authenticationService.authenticateTrainee(req.trainerUsername(), password);
+        authenticationService.authenticateTrainer(username, password);
 
-        Trainer trainer = trainerRepository.findByUserUsername(req.trainerUsername())
+        Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Failed to find trainer"));
 
-        List<Training> trainings = trainerRepository.findTrainingsByTrainerUsernameWithCriteria(
-                req.trainerUsername(), req.fromDate(), req.toDate(), req.traineeName());
+        Set<Training> trainings = trainer.getTrainings();
 
         if (trainings == null || trainings.isEmpty()) {
-            logger.info("No trainings found for trainee [{}] with given criteria", req.trainerUsername());
-            throw new ResourceNotFoundException("Failed to fetch trainings for the trainer");
+            logger.info("No trainings found for trainer [{}] with given criteria", username);
+            throw new ResourceNotFoundException("Failed to find any trainings.");
         }
 
-        logger.info("Found {} trainings for trainee [{}]", trainings.size(), req.trainerUsername());
+        Stream<Training> filtered = trainings.stream()
+                .filter(tr -> fromDate == null || !tr.getTrainingDate().isBefore(fromDate))
+                .filter(tr -> toDate == null || !tr.getTrainingDate().isAfter(toDate))
+                .filter(tr -> {
+                    if (traineeName == null) return true;
 
-        return trainings.stream()
+                    String tn = traineeName.toLowerCase();
+                    String first = tr.getTrainee().getUser().getFirstName().toLowerCase();
+                    String last = tr.getTrainee().getUser().getLastName().toLowerCase();
+                    String full = first + " " + last;
+
+                    return first.contains(tn) || last.contains(tn) || full.contains(tn);
+                });
+
+        List<Training> resultList = filtered.collect(Collectors.toUnmodifiableList());
+
+        if (resultList.isEmpty()) {
+            logger.info("No trainings found for trainer [{}] with given criteria", username);
+            throw new ResourceNotFoundException("Failed to fetch trainings with the given criteria");
+        }
+
+        logger.info("Found {} trainings for trainee [{}]", trainings.size(), username);
+
+        return resultList.stream()
                 .map(mappers::getTrainingResponseForTrainer)
                 .collect(Collectors.toUnmodifiableList());
     }

@@ -116,11 +116,11 @@ public class Mappers {
 
         // set training and trainer responses.
 
-        Set<TrainerResponseBasic> trainerProfileRespons = new HashSet<>();
+        Set<TrainerResponseBasic> basicTrainerResponses = new HashSet<>();
         Set<Trainer> trainers = trainee.getTrainers();
 
         for (Trainer trainer : trainers) {
-            trainerProfileRespons.add(new TrainerResponseBasic(
+            basicTrainerResponses.add(new TrainerResponseBasic(
                     trainer.getUser().getFirstName(),
                     trainer.getUser().getLastName(),
                     trainer.getUser().getUsername(),
@@ -137,7 +137,7 @@ public class Mappers {
 //            trainingResponses.add(getTrainingResponse(training));
 //        }
 
-        traineeUpdateResponse.setTrainerProfileRespons(trainerProfileRespons);
+        traineeUpdateResponse.setTrainerProfileResponse(basicTrainerResponses);
 
         return traineeUpdateResponse;
     }

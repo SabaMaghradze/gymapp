@@ -1,6 +1,7 @@
 package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.dto.request.trainee.TraineeActivationRequest;
+import com.rest.gymapp.dto.request.trainee.TraineeRegistrationRequest;
 import com.rest.gymapp.dto.request.trainee.TraineeUpdateRequest;
 import com.rest.gymapp.dto.request.trainee.UpdateTraineeTrainersRequest;
 import com.rest.gymapp.dto.request.training.TraineeTrainingsRequest;
@@ -16,6 +17,7 @@ import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
 import com.rest.gymapp.model.User;
 import com.rest.gymapp.repository.TraineeRepository;
+import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.UserRepository;
 import com.rest.gymapp.service.AuthenticationService;
 import com.rest.gymapp.service.TraineeService;
@@ -25,34 +27,37 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TraineeServiceImpl implements TraineeService {
 
     private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
 
     private final TraineeRepository traineeRepository;
+    private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
 
-    public RegistrationResponse createTraineeProfile(String firstName, String lastName,
-                                                     LocalDate dateOfBirth, String address) {
+    public RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req) {
 
-        logger.info("Registering trainee profile for: {} {}", firstName, lastName);
+        logger.info("Registering trainee profile for: {} {}", req.firstName(), req.lastName());
 
-        String username = credentialsGenerator.generateUsername(firstName, lastName, userRepository);
+        String username = credentialsGenerator.generateUsername(req.firstName(), req.lastName(), userRepository);
         String password = credentialsGenerator.generatePassword();
 
         User user = new User();
-        user.setFirstName(firstName.trim());
-        user.setLastName(lastName.trim());
+        user.setFirstName(req.firstName().trim());
+        user.setLastName(req.lastName().trim());
         user.setUsername(username);
         user.setPassword(password);
         user.setIsActive(true);
@@ -60,11 +65,18 @@ public class TraineeServiceImpl implements TraineeService {
         User savedUser = userRepository.save(user);
 
         Trainee trainee = new Trainee();
-        trainee.setDateOfBirth(dateOfBirth);
-        trainee.setAddress(address);
+
+        if (req.dateOfBirth() != null) {
+            trainee.setDateOfBirth(req.dateOfBirth());
+        }
+
+        if (req.address() != null) {
+            trainee.setAddress(req.address());
+        }
+
         trainee.setUser(savedUser);
 
-        Trainee savedTrainee = traineeRepository.save(trainee);
+        traineeRepository.save(trainee);
 
         logger.info("Successfully created trainee profile for username: {}", username);
         return new RegistrationResponse(username, password);
@@ -104,16 +116,21 @@ public class TraineeServiceImpl implements TraineeService {
 
     }
 
-    public TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest req, String password) {
+    public TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest req, String username, String password) {
 
-        logger.info("Updating trainer profile for username: {}", req.username());
+        logger.info("Updating trainer profile for username: {}", username);
 
-        authenticationService.authenticateTrainee(req.username(), password);
+        authenticationService.authenticateTrainee(username, password);
 
-        Trainee trainee = traineeRepository.findByUserUsername(req.username())
+        Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         User user = trainee.getUser();
+
+        if (!req.firstName().equals(user.getFirstName()) || !req.lastName().equals(user.getLastName())) {
+            String newUserName = credentialsGenerator.generateUsername(req.firstName(), req.lastName(), userRepository);
+            user.setUsername(newUserName);
+        }
 
         user.setFirstName(req.firstName().trim());
         user.setLastName(req.lastName().trim());
@@ -129,7 +146,7 @@ public class TraineeServiceImpl implements TraineeService {
         userRepository.save(user);
         Trainee updatedTrainee = traineeRepository.save(trainee);
 
-        logger.info("Successfully updated trainer profile for username: {}", req.username());
+        logger.info("Successfully updated trainer profile for username: {}", username);
 
         return mappers.getTraineeUpdateResponse(updatedTrainee);
     }
@@ -148,66 +165,108 @@ public class TraineeServiceImpl implements TraineeService {
         logger.info("Successfully deleted trainee profile and associated trainings for username: {}", username);
     }
 
+    @Transactional(readOnly = true)
     public List<TrainerResponseBasic> findNonAssignedTrainers(String traineeUsername, String password) {
 
         logger.info("Searching for all the trainers that are not assigned to trainee: {}", traineeUsername);
 
         authenticationService.authenticateTrainee(traineeUsername, password);
 
-        Trainee trainee = traineeRepository.findByUserUsername(traineeUsername)
-                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
-
-        List<Trainer> trainers = traineeRepository.findTrainersNotAssignedToTrainee(traineeUsername);
-
-        if (trainers == null || trainers.isEmpty()) {
-            logger.warn("No trainers found: {}", traineeUsername);
-            throw new ResourceNotFoundException("Failed to find trainers");
-        }
-
-        logger.info("Successfully fetched all the trainers: {}", traineeUsername);
-
         List<TrainerResponseBasic> responses = new ArrayList<>();
 
-        for (Trainer trainer : trainers) {
+        Trainee trainee = traineeRepository.findByUserUsername(traineeUsername)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        List<Trainer> allTrainers = trainerRepository.findAll();
+        if (allTrainers.isEmpty()) {
+            throw new ResourceNotFoundException("Failed to fetch all trainers");
+        }
+
+        Set<Trainer> traineeTrainers = trainee.getTrainers();
+        if (traineeTrainers.isEmpty()) {
+            for (Trainer trainer : allTrainers) {
+                responses.add(mappers.getTrainerResponseBasic(trainer));
+            }
+            return responses;
+        }
+
+        List<Trainer> nonAssignedTrainers = allTrainers.stream()
+                .filter(trainer -> trainer.getTrainees().stream()
+                        .noneMatch(t -> t.getUser().getUsername().equals(traineeUsername)))
+                .toList();
+
+        if (nonAssignedTrainers.isEmpty()) {
+            throw new ResourceNotFoundException("All trainers are already assigned to this trainee");
+        }
+
+        for (Trainer trainer : nonAssignedTrainers) {
             responses.add(mappers.getTrainerResponseBasic(trainer));
         }
+
+        logger.info("Successfully fetched all the trainers: {}", nonAssignedTrainers);
 
         return responses;
     }
 
-    public List<TrainingResponseForTrainee> findTraineeTrainings(TraineeTrainingsRequest req, String password) {
+    public List<TrainingResponseForTrainee> findTraineeTrainings(String username,
+                                                                 String password,
+                                                                 LocalDate fromDate,
+                                                                 LocalDate toDate,
+                                                                 String trainerName,
+                                                                 String trainingType) {
 
-        logger.info("Fetching trainings for trainee: {}", req.traineeUsername());
+        logger.info("Fetching trainings for trainee: {}", username);
 
-        authenticationService.authenticateTrainee(req.traineeUsername(), password);
+        authenticationService.authenticateTrainee(username, password);
 
-        Trainee trainee = traineeRepository.findByUserUsername(req.traineeUsername())
-                .orElseThrow(() -> new UserNotFoundException("Failed to find user"));
+        Trainee trainee = traineeRepository.findByUserUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        List<Training> trainings = traineeRepository.findTrainingsByTraineeUsernameWithCriteria(
-                req.traineeUsername(), req.fromDate(), req.toDate(), req.trainerName(), req.trainingType().getTrainingTypeName()
-        );
+        Set<Training> trainings = trainee.getTrainings();
 
         if (trainings == null || trainings.isEmpty()) {
-            logger.info("No trainings found for trainee [{}] with given criteria", req.traineeUsername());
-            throw new ResourceNotFoundException("Failed to find trainings for the user");
+            logger.info("No trainings found for trainee [{}] with given criteria", username);
+            throw new ResourceNotFoundException("Failed to find any trainings.");
         }
 
-        logger.info("Found {} trainings for trainee [{}]", trainings.size(), req.traineeUsername());
+        Stream<Training> filtered = trainings.stream()
+                .filter(tr -> fromDate == null || !tr.getTrainingDate().isBefore(fromDate))
+                .filter(tr -> toDate == null || !tr.getTrainingDate().isAfter(toDate))
+                .filter(tr -> {
+                    if (trainerName == null) return true;
 
-        return trainings.stream()
+                    String tn = trainerName.toLowerCase();
+                    String first = tr.getTrainer().getUser().getFirstName().toLowerCase();
+                    String last = tr.getTrainer().getUser().getLastName().toLowerCase();
+                    String full = first + " " + last;
+
+                    return first.contains(tn) || last.contains(tn) || full.contains(tn);
+                })
+                .filter(tr -> trainingType == null ||
+                        tr.getTrainingType().getTrainingTypeName().equalsIgnoreCase(trainingType));
+
+        List<Training> resultList = filtered.collect(Collectors.toUnmodifiableList());
+
+        if (resultList.isEmpty()) {
+            logger.info("No trainings found for trainee [{}] with given criteria", username);
+            throw new ResourceNotFoundException("Failed to fetch trainings with the given criteria");
+        }
+
+        logger.info("Found {} trainings for trainee [{}]", trainings.size(), username);
+
+        return resultList.stream()
                 .map(mappers::getTrainingResponseForTrainee)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
-    public List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String password) {
+    public List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String username, String password) {
 
-        logger.info("Fetching trainers of trainee: {}", req.username());
+        logger.info("Fetching trainers of trainee: {}", username);
 
-        authenticationService.authenticateTrainee(req.username(), password);
+        authenticationService.authenticateTrainee(username, password);
 
-        Trainee trainee = traineeRepository.findByUserUsername(req.username())
+        Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         Set<Trainer> existingTrainers = trainee.getTrainers();

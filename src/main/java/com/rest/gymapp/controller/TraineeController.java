@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,68 +27,79 @@ public class TraineeController {
 
     private final TraineeService traineeService;
 
+    // done
     @PostMapping("/register")
     public ResponseEntity<RegistrationResponse> registerTrainee(
             @Valid @RequestBody TraineeRegistrationRequest req) {
 
-        RegistrationResponse response = traineeService.createTraineeProfile(
-                req.firstName(),
-                req.lastName(),
-                req.dateOfBirth(),
-                req.address()
-        );
+        RegistrationResponse response = traineeService.createTraineeProfile(req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // done
     @GetMapping("/trainee")
-    public ResponseEntity<TraineeProfileResponse> getTrainee(@RequestParam String username,
-                                                             @RequestParam String password) {
+    public ResponseEntity<TraineeProfileResponse> getTrainee(@RequestHeader String username,
+                                                             @RequestHeader String password) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(traineeService.getTraineeProfileByUsername(username, password));
     }
 
+    // done
+    // may change dto, since for now username is not required in the request,
+    // trainee cannot change it themselves
     @PutMapping("/update-trainee")
     public ResponseEntity<TraineeUpdateResponse> updateTrainee(@Valid @RequestBody TraineeUpdateRequest req,
-                                                               @RequestParam String password) {
-        return ResponseEntity.status(HttpStatus.OK).body(traineeService.updateTraineeProfile(req, password));
+                                                               @RequestHeader String username,
+                                                               @RequestHeader String password) {
+        return ResponseEntity.status(HttpStatus.OK).body(traineeService.updateTraineeProfile(req, username, password));
     }
 
+    // done
     @DeleteMapping("/delete-trainee")
-    public ResponseEntity<?> deleteTrainee(@RequestParam String username,
-                                           @RequestParam String password) {
+    public ResponseEntity<?> deleteTrainee(@RequestHeader String username,
+                                           @RequestHeader String password) {
         traineeService.deleteTraineeProfile(username, password);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    // to fix (most-likely issue - lazy loading)
     @GetMapping("/trainee/non-assigned-trainers")
     public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(
-            @RequestParam String username,
-            @RequestParam String password
+            @RequestHeader String username,
+            @RequestHeader String password
     ) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(traineeService.findNonAssignedTrainers(username, password));
     }
 
+    // to test
     @PutMapping("/trainee/update-trainers")
     public ResponseEntity<List<TrainerResponseBasic>> updateTrainers(
             @Valid @RequestBody UpdateTraineeTrainersRequest req,
-            @RequestParam String password
+            @RequestHeader String username,
+            @RequestHeader String password
     ) {
-        return ResponseEntity.ok(traineeService.updateTraineeTrainers(req, password));
+        return ResponseEntity.ok(traineeService.updateTraineeTrainers(req, username, password));
     }
 
+    // done
     @GetMapping("/trainee/trainings")
     public ResponseEntity<List<TrainingResponseForTrainee>> getTraineeTrainings(
-            @Valid @RequestBody TraineeTrainingsRequest req,
-            @RequestParam String password
-            ) {
-        return ResponseEntity.ok(traineeService.findTraineeTrainings(req, password));
+            @RequestHeader String username,
+            @RequestHeader String password,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @RequestParam(required = false) String trainerName,
+            @RequestParam(required = false) String trainingTypeName
+    ) {
+        return ResponseEntity.ok(traineeService.findTraineeTrainings(username, password, fromDate, toDate, trainerName, trainingTypeName));
     }
 
+    // to test
     @PatchMapping("/trainee/activate-deactivate")
     public ResponseEntity<?> changeActivationStatus(@Valid @RequestBody TraineeActivationRequest req,
-                                                 @RequestParam String password) {
+                                                    @RequestParam String password) {
         traineeService.activateDeactivateTrainee(req, password);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
