@@ -33,14 +33,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.hibernate.internal.util.collections.ArrayHelper.forEach;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class TraineeServiceImpl implements TraineeService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
@@ -49,6 +47,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
 
+    @Transactional
     public RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req, String transactionId) {
 
         logger.info("Registering trainee profile for: {} {}, transaction id: {}", req.firstName(), req.lastName(), transactionId);
@@ -85,7 +84,6 @@ public class TraineeServiceImpl implements TraineeService {
         return response;
     }
 
-    @Transactional(readOnly = true)
     public TraineeProfileResponse getTraineeProfileByUsername(String username, String password, String transactionId) {
 
         logger.info("[{}] Getting trainee profile for username: {}", transactionId, username);
@@ -101,6 +99,7 @@ public class TraineeServiceImpl implements TraineeService {
         return response;
     }
 
+    @Transactional
     public void activateDeactivateTrainee(TraineeActivationRequest req, String username, String password, String transactionId) {
 
         logger.info("{} trainer with username: {}", req.isActive() ? "Activating" : "Deactivating", username);
@@ -122,6 +121,7 @@ public class TraineeServiceImpl implements TraineeService {
         logger.info("[{}] Successfully {} trainee with username: {}", transactionId, req.isActive() ? "activated" : "deactivated", username);
     }
 
+    @Transactional
     public TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] Updating trainee profile for username: {}", transactionId, username);
@@ -158,6 +158,7 @@ public class TraineeServiceImpl implements TraineeService {
         return response;
     }
 
+    @Transactional
     public void deleteTraineeProfile(String username, String password, String transactionId) {
 
         logger.info("[{}] Deleting trainee profile for username: {}", transactionId, username);
@@ -253,7 +254,7 @@ public class TraineeServiceImpl implements TraineeService {
                 .filter(tr -> trainingType == null ||
                         tr.getTrainingType().getTrainingTypeName().equalsIgnoreCase(trainingType));
 
-        List<Training> resultList = filtered.collect(Collectors.toUnmodifiableList());
+        List<Training> resultList = filtered.toList();
 
         if (resultList.isEmpty()) {
             logger.info("[{}] No trainings found for trainee [{}] with given criteria", transactionId, username);
@@ -262,14 +263,18 @@ public class TraineeServiceImpl implements TraineeService {
 
         List<TrainingResponseForTrainee> response = resultList.stream()
                 .map(mappers::getTrainingResponseForTrainee)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         logger.info("[{}] Found {} trainings for trainee [{}]: {}", transactionId, response.size(), username, response);
 
         return response;
     }
 
+    // this task was not specified in the description, so I considered the trainers
+    // with usernames provided in the request should be added to trainers list, if a
+    // name is missing, it will be ignored (not removed).
     @Override
+    @Transactional
     public List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req,
                                                             String username,
                                                             String password,
@@ -283,56 +288,31 @@ public class TraineeServiceImpl implements TraineeService {
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         Set<Trainer> existingTrainers = trainee.getTrainers();
-//        List<String> newTrainerUsernames = req.getTrainers().stream()
-//                .forEach(trainerReq -> trainerReq.getUsername());
+
+        Set<String> existingTrainersUsernames = existingTrainers.stream()
+                .map(trainer -> trainer.getUser().getUsername())
+                .collect(Collectors.toSet());
+
+        List<Trainer> trainersToAdd = req.getTrainers().stream()
+                .map(trainerReq -> trainerRepository.findByUserUsername(trainerReq.getUsername())
+                        .orElseThrow(() -> new UserNotFoundException("Trainer not found: " + trainerReq.getUsername())))
+                .filter(trainer -> !existingTrainersUsernames.contains(trainer.getUser().getUsername()))
+                .toList();
 
         if (existingTrainers.isEmpty()) {
             throw new ResourceNotFoundException("Failed to find trainers for this trainee");
         }
 
+        existingTrainers.addAll(trainersToAdd);
+        trainee.setTrainers(existingTrainers);
+        traineeRepository.save(trainee);
+
         List<TrainerResponseBasic> response = existingTrainers.stream()
                 .map(mappers::getTrainerResponseBasic)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         logger.info("[{}] Trainers fetched for trainee {}: {}", transactionId, username, response);
 
         return response;
     }
-
-    //    public boolean changeTraineePassword(String username, String oldPassword, String newPassword) {
-//        logger.info("Changing password for trainer username: {}", username);
-//
-//        try {
-//            Optional<Trainee> traineeOpt = traineeRepository.findByUsername(username);
-//
-//            if (!traineeOpt.isPresent()) {
-//                logger.warn("Trainer not found for username: {}", username);
-//                return false;
-//            }
-//
-//            Trainee trainee = traineeOpt.get();
-//
-//            // Verify old password
-//            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-//                logger.warn("Old password verification failed for trainer username: {}", username);
-//                return false;
-//            }
-//
-//            // Validate new password
-//            if (newPassword == null || newPassword.trim().isEmpty()) {
-//                logger.warn("New password cannot be empty");
-//                return false;
-//            }
-//
-//            trainee.getUser().setPassword(newPassword.trim());
-//            userRepository.save(trainee.getUser());
-//
-//            logger.info("Successfully changed password for trainer username: {}", username);
-//            return true;
-//
-//        } catch (Exception e) {
-//            logger.error("Error changing password for trainer username: {}", username, e);
-//            throw new RuntimeException("Failed to change password", e);
-//        }
-//    }
 }

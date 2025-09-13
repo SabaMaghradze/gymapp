@@ -15,4 +15,8 @@ public class TrainerResponseBasic {
     private String username;
 
     private TrainingTypeResponse trainingTypeResponse;
+
+    public TrainerResponseBasic(String username) {
+        this.username = username;
+    }
 }

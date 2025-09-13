@@ -1,8 +1,8 @@
 package com.rest.gymapp.controller;
 
 import com.rest.gymapp.dto.request.training.TrainingRegistrationRequest;
-import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.service.TrainingService;
+import io.swagger.annotations.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -16,16 +16,27 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/trainings")
+@Api(tags = "Training Management")
 public class TrainingController {
 
     private final TrainingService trainingService;
     private static final Logger logger = LoggerFactory.getLogger(TrainingController.class);
 
-    // done
+    @ApiOperation(
+            value = "Register a new training",
+            notes = "Allows a trainee to register a training with a specific trainer and type."
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Training successfully registered"),
+            @ApiResponse(code = 401, message = "Unauthorized – invalid credentials"),
+            @ApiResponse(code = 404, message = "Trainer, trainee, or training type not found"),
+            @ApiResponse(code = 400, message = "Bad request – invalid input")
+    })
     @PostMapping("/add-training")
-    public ResponseEntity<?> addTraining(@Valid @RequestBody TrainingRegistrationRequest req,
-                                         @RequestHeader String username,
-                                         @RequestHeader String password) {
+    public ResponseEntity<?> addTraining(
+            @Valid @RequestBody TrainingRegistrationRequest req,
+            @ApiParam(value = "Trainee's username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee's password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] POST /api/trainings/add-training called by {}", transactionId, username);

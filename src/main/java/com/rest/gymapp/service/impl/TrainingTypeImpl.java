@@ -7,7 +7,6 @@ import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.model.TrainingType;
 import com.rest.gymapp.repository.TrainingTypeRepository;
 import com.rest.gymapp.service.AuthenticationService;
-import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.service.TrainingTypeService;
 import com.rest.gymapp.utils.Mappers;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +22,8 @@ public class TrainingTypeImpl implements TrainingTypeService {
 
     private final TrainingTypeRepository trainingTypeRepository;
     private final AuthenticationService authenticationService;
-    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
-    private final Mappers mapper;
+    private static final Logger logger = LoggerFactory.getLogger(TrainingTypeImpl.class);
+    private final Mappers mappers;
 
     @Override
     public List<TrainingTypeResponse> getAllTrainingTypes(String username, String password, String transactionId) {
@@ -45,8 +42,8 @@ public class TrainingTypeImpl implements TrainingTypeService {
         logger.info("[{}] training types list successfully retrieved", transactionId);
 
         return types.stream()
-                .map(mapper::getTrainingTypeResponse)
-                .collect(Collectors.toUnmodifiableList());
+                .map(mappers::getTrainingTypeResponse)
+                .toList();
     }
 
     @Override
@@ -67,6 +64,6 @@ public class TrainingTypeImpl implements TrainingTypeService {
 
         logger.info("[{}] successfully created training type: {}", transactionId, req.trainingTypeName());
 
-        return mapper.getTrainingTypeResponse(savedTrainingType);
+        return mappers.getTrainingTypeResponse(savedTrainingType);
     }
 }

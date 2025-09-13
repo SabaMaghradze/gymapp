@@ -3,6 +3,10 @@ package com.rest.gymapp.controller;
 import com.rest.gymapp.dto.request.auth.LoginRequest;
 import com.rest.gymapp.dto.request.auth.PasswordChangeRequest;
 import com.rest.gymapp.service.AuthenticationService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,18 +15,33 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
+@Api(tags = "User Authentication")
 public class UserController {
 
     private final AuthenticationService authenticationService;
 
-    // to test
+    @ApiOperation(
+            value = "User login",
+            notes = "Authenticates a user with their username and password."
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User successfully authenticated"),
+            @ApiResponse(code = 400, message = "Invalid credentials or bad request")
+    })
     @GetMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest req) {
         authenticationService.authenticateUser(req.username(), req.password());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    // to test
+    @ApiOperation(
+            value = "Change user password",
+            notes = "Allows a user to change their password by providing old and new passwords."
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Password successfully changed"),
+            @ApiResponse(code = 400, message = "Invalid credentials or bad request")
+    })
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest req) {
         authenticationService.changePassword(req.username(), req.oldPassword(), req.newPassword());

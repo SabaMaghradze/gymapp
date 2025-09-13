@@ -21,18 +21,18 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TrainerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
@@ -41,6 +41,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final Mappers mappers;
     private final TrainingTypeRepository trainingTypeRepository;
 
+    @Transactional
     public RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId) {
 
         logger.info("[{}] Creating trainer profile for: {} {}", transactionId, req.firstName(), req.lastName());
@@ -86,6 +87,7 @@ public class TrainerServiceImpl implements TrainerService {
         return response;
     }
 
+    @Transactional
     public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] Updating trainer profile for username={}, payload={}", transactionId, username, req);
@@ -120,6 +122,7 @@ public class TrainerServiceImpl implements TrainerService {
         return response;
     }
 
+    @Transactional
     public void activateDeactivateTrainer(TrainerActivationRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] {} trainer with username={}", transactionId,
@@ -178,7 +181,7 @@ public class TrainerServiceImpl implements TrainerService {
                     return first.contains(tn) || last.contains(tn) || full.contains(tn);
                 });
 
-        List<Training> resultList = filtered.collect(Collectors.toUnmodifiableList());
+        List<Training> resultList = filtered.toList();
 
         if (resultList.isEmpty()) {
             logger.info("[{}] No trainings found for trainer={} with given criteria", transactionId, username);
@@ -189,49 +192,6 @@ public class TrainerServiceImpl implements TrainerService {
 
         return resultList.stream()
                 .map(mappers::getTrainingResponseForTrainer)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
-
-    //    @Transactional
-//    public boolean changeTrainerPassword(String username, String oldPassword, String newPassword) {
-//        logger.info("Changing password for trainer username: {}", username);
-//
-//        if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-//            logger.warn("Authentication failed for trainer username: {}", username);
-//            return false;
-//        }
-//
-//        try {
-//            Optional<Trainer> trainerOpt = trainerRepository.findByUsername(username);
-//
-//            if (!trainerOpt.isPresent()) {
-//                logger.warn("Trainer not found for username: {}", username);
-//                return false;
-//            }
-//
-//            Trainer trainer = trainerOpt.get();
-//
-//            // Verify old password
-//            if (!authenticationService.authenticateTrainer(username, oldPassword)) {
-//                logger.warn("Old password verification failed for trainer username: {}", username);
-//                return false;
-//            }
-//
-//            // Validate new password
-//            if (newPassword == null || newPassword.trim().isEmpty()) {
-//                logger.warn("New password cannot be empty");
-//                return false;
-//            }
-//
-//            trainer.getUser().setPassword(newPassword.trim());
-//            userRepository.save(trainer.getUser());
-//
-//            logger.info("Successfully changed password for trainer username: {}", username);
-//            return true;
-//
-//        } catch (Exception e) {
-//            logger.error("Error changing password for trainer username: {}", username, e);
-//            throw new RuntimeException("Failed to change password", e);
-//        }
-//    }
 }

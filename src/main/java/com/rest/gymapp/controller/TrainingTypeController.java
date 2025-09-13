@@ -4,6 +4,7 @@ import com.rest.gymapp.dto.request.trainingType.TrainingTypeRegistrationRequest;
 import com.rest.gymapp.dto.response.trainingtype.TrainingTypeResponse;
 import com.rest.gymapp.service.TrainerService;
 import com.rest.gymapp.service.TrainingTypeService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,15 +18,24 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/training-types")
+@Api(tags = "Training Type Management")
 public class TrainingTypeController {
 
     private final TrainingTypeService trainingTypeService;
     private static final Logger logger = LoggerFactory.getLogger(TrainerService.class);
-    // done
+
+    @ApiOperation(
+            value = "Get all training types",
+            notes = "Retrieves a list of all training types available in the system."
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Successfully retrieved training types"),
+            @ApiResponse(code = 401, message = "Unauthorized – invalid credentials")
+    })
     @GetMapping("/all-training-types")
     public ResponseEntity<List<TrainingTypeResponse>> getAllTrainingTypes(
-            @RequestHeader String username,
-            @RequestHeader String password
+            @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
+            @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password
     ) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -38,11 +48,20 @@ public class TrainingTypeController {
         return ResponseEntity.ok().body(result);
     }
 
-    // done
+    @ApiOperation(
+            value = "Add a new training type",
+            notes = "Registers a new training type in the system."
+    )
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Training type successfully added"),
+            @ApiResponse(code = 400, message = "Bad request – invalid input"),
+            @ApiResponse(code = 401, message = "Unauthorized – invalid credentials")
+    })
     @PostMapping("/add-type")
-    public ResponseEntity<TrainingTypeResponse> addTrainingType(@RequestBody TrainingTypeRegistrationRequest req,
-                                                                @RequestHeader String username,
-                                                                @RequestHeader String password) {
+    public ResponseEntity<TrainingTypeResponse> addTrainingType(
+            @RequestBody TrainingTypeRegistrationRequest req,
+            @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
+            @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] POST /api/training-types/all-training-types called with payload: {}", transactionId, req);

@@ -26,14 +26,6 @@ public class TraineeUpdateResponse {
 
     private Set<TrainerResponseBasic> trainerProfileResponse;
 
-    private UserResponse userResponse; // remove if we keep the fields also existent in user response.
-
-    public TraineeUpdateResponse(LocalDate dateOfBirth, String address, UserResponse userResponse) {
-        this.dateOfBirth = dateOfBirth;
-        this.address = address;
-        this.userResponse = userResponse;
-    }
-
     public TraineeUpdateResponse(String username, String firstName, String lastName, LocalDate dateOfBirth, String address, Boolean isActive) {
         this.username = username;
         this.firstName = firstName;
@@ -41,5 +33,13 @@ public class TraineeUpdateResponse {
         this.dateOfBirth = dateOfBirth;
         this.address = address;
         this.isActive = isActive;
+    }
+
+    public TraineeUpdateResponse(String username, String firstName, String lastName, Boolean isActive, String address) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isActive = isActive;
+        this.address = address;
     }
 }

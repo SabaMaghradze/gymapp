@@ -12,7 +12,6 @@ import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.TrainingRepository;
 import com.rest.gymapp.repository.TrainingTypeRepository;
 import com.rest.gymapp.service.AuthenticationService;
-import com.rest.gymapp.service.TraineeService;
 import com.rest.gymapp.service.TrainingService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -24,7 +23,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TrainingServiceImpl implements TrainingService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TraineeService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
     private final TrainingRepository trainingRepository;
     private final AuthenticationService authenticationService;
@@ -64,7 +63,7 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainingType(trainingType);
         training.setTrainingName(req.trainingName());
         training.setTrainingDate(req.trainingDate());
-        training.setTrainingDuration(req.duration().intValue());
+        training.setTrainingDuration(req.duration());
 
         Training savedTraining = trainingRepository.save(training);
 

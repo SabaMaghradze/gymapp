@@ -19,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
     private final UserRepository userRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
