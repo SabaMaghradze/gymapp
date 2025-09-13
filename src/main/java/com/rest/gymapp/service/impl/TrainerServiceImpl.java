@@ -1,10 +1,8 @@
 package com.rest.gymapp.service.impl;
 
-import com.rest.gymapp.dto.request.auth.LoginRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerActivationRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerRegistrationRequest;
 import com.rest.gymapp.dto.request.trainer.TrainerUpdateRequest;
-import com.rest.gymapp.dto.request.training.TrainerTrainingsRequest;
 import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
@@ -23,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -44,9 +41,9 @@ public class TrainerServiceImpl implements TrainerService {
     private final Mappers mappers;
     private final TrainingTypeRepository trainingTypeRepository;
 
-    public RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req) {
+    public RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId) {
 
-        logger.info("Creating trainer profile for: {} {}", req.firstName(), req.lastName());
+        logger.info("[{}] Creating trainer profile for: {} {}", transactionId, req.firstName(), req.lastName());
 
         TrainingType trainingType = trainingTypeRepository.findByTrainingTypeName(req.specializationName())
                 .orElseThrow(() -> new ResourceNotFoundException("Training type not found"));
@@ -68,27 +65,30 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setSpecialization(trainingType);
         trainer.setUser(savedUser);
 
-        Trainer savedTrainer = trainerRepository.save(trainer);
+        trainerRepository.save(trainer);
 
-        logger.info("Successfully created trainer profile for username: {}", username);
-        return new RegistrationResponse(username, password);
+        RegistrationResponse response = new RegistrationResponse(username, password);
+        logger.info("[{}] Successfully created trainer profile: {}", transactionId, response);
+        return response;
     }
 
-    public TrainerProfileResponse getTrainerByUsername(String username, String password) {
+    public TrainerProfileResponse getTrainerByUsername(String username, String password, String transactionId) {
 
-        logger.info("Getting trainer profile for username: {}", username);
+        logger.info("[{}] Getting trainer profile for username={}", transactionId, username);
 
         authenticationService.authenticateTrainer(username, password);
 
         Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
-        return mappers.getTrainerProfileResponse(trainer);
+        TrainerProfileResponse response = mappers.getTrainerProfileResponse(trainer);
+        logger.info("[{}] Successfully fetched trainer profile for username={}", transactionId, username);
+        return response;
     }
 
-    public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password) {
+    public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password, String transactionId) {
 
-        logger.info("Updating trainer profile for username: {}", username);
+        logger.info("[{}] Updating trainer profile for username={}, payload={}", transactionId, username, req);
 
         authenticationService.authenticateTrainer(username, password);
 
@@ -115,17 +115,19 @@ public class TrainerServiceImpl implements TrainerService {
         userRepository.save(user);
         Trainer updatedTrainer = trainerRepository.save(trainer);
 
-        logger.info("Successfully updated trainer profile for username: {}", username);
-        return mappers.getTrainerUpdateResponse(updatedTrainer);
+        TrainerUpdateResponse response = mappers.getTrainerUpdateResponse(updatedTrainer);
+        logger.info("[{}] Successfully updated trainer profile for username={}", transactionId, user.getUsername());
+        return response;
     }
 
-    public void activateDeactivateTrainer(TrainerActivationRequest req, String password) {
+    public void activateDeactivateTrainer(TrainerActivationRequest req, String username, String password, String transactionId) {
 
-        logger.info("{} trainer with username: {}", req.isActive() ? "Activating" : "Deactivating", req.username());
+        logger.info("[{}] {} trainer with username={}", transactionId,
+                req.isActive() ? "Activating" : "Deactivating", username);
 
-        authenticationService.authenticateTrainer(req.username(), password);
+        authenticationService.authenticateTrainer(username, password);
 
-        Trainer trainer = trainerRepository.findByUserUsername(req.username())
+        Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         if (trainer.getUser().getIsActive() == req.isActive()) {
@@ -136,16 +138,19 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.getUser().setIsActive(req.isActive());
         userRepository.save(trainer.getUser());
 
-        logger.info("Successfully {} trainer with username: {}", req.isActive() ? "activated" : "deactivated", req.username());
+        logger.info("[{}] Successfully {} trainer username={}", transactionId,
+                req.isActive() ? "activated" : "deactivated", username);
     }
 
     public List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String username,
                                                                            String password,
                                                                            LocalDate fromDate,
                                                                            LocalDate toDate,
-                                                                           String traineeName) {
+                                                                           String traineeName,
+                                                                           String transactionId) {
 
-        logger.info("Fetching trainings for trainer: {}", username);
+        logger.info("[{}] Fetching trainings for trainer={}, fromDate={}, toDate={}, traineeName={}",
+                transactionId, username, fromDate, toDate, traineeName);
 
         authenticationService.authenticateTrainer(username, password);
 
@@ -155,7 +160,7 @@ public class TrainerServiceImpl implements TrainerService {
         Set<Training> trainings = trainer.getTrainings();
 
         if (trainings == null || trainings.isEmpty()) {
-            logger.info("No trainings found for trainer [{}] with given criteria", username);
+            logger.info("There are no trainings registered by user: {}", username);
             throw new ResourceNotFoundException("Failed to find any trainings.");
         }
 
@@ -176,11 +181,11 @@ public class TrainerServiceImpl implements TrainerService {
         List<Training> resultList = filtered.collect(Collectors.toUnmodifiableList());
 
         if (resultList.isEmpty()) {
-            logger.info("No trainings found for trainer [{}] with given criteria", username);
+            logger.info("[{}] No trainings found for trainer={} with given criteria", transactionId, username);
             throw new ResourceNotFoundException("Failed to fetch trainings with the given criteria");
         }
 
-        logger.info("Found {} trainings for trainee [{}]", trainings.size(), username);
+        logger.info("[{}] Found {} trainings for trainer={}", transactionId, resultList.size(), username);
 
         return resultList.stream()
                 .map(mappers::getTrainingResponseForTrainer)

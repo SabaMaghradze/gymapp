@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface TraineeRepository extends JpaRepository<Trainee, Long> {
 
+    @EntityGraph(attributePaths = {"user", "trainers", "trainings"})
     Optional<Trainee> findByUserUsername(String username);
 }

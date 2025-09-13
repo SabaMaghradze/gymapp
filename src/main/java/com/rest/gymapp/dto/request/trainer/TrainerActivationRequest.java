@@ -1,10 +1,8 @@
 package com.rest.gymapp.dto.request.trainer;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 public record TrainerActivationRequest(
-        @NotBlank String username,
-        @NotEmpty Boolean isActive
+        @NotNull Boolean isActive
 ) {
 }

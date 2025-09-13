@@ -14,19 +14,20 @@ import java.util.List;
 
 public interface TrainerService {
 
-    RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req);
+    RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId);
 
-    TrainerProfileResponse getTrainerByUsername(String username, String password);
+    TrainerProfileResponse getTrainerByUsername(String username, String password, String transactionId);
 
-    TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password);
+    TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password, String transactionId);
 
-    void activateDeactivateTrainer(TrainerActivationRequest req, String password);
+    void activateDeactivateTrainer(TrainerActivationRequest req, String username, String password, String transactionId);
 
-    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String usename,
+    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String username,
                                                                     String password,
                                                                     LocalDate fromDate,
                                                                     LocalDate toDate,
-                                                                    String traineeName
+                                                                    String traineeName,
+                                                                    String transactionId
     );
 
 //    boolean changeTrainerPassword(String username, String oldPassword, String newPassword);

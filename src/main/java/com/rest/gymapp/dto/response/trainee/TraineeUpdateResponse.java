@@ -1,6 +1,5 @@
 package com.rest.gymapp.dto.response.trainee;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.rest.gymapp.dto.response.UserResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerResponseBasic;
 import lombok.AllArgsConstructor;

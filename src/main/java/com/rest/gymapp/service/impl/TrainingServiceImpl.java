@@ -32,10 +32,13 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
 
-    public void addTraining(TrainingRegistrationRequest req, String username, String password) {
+    public void addTraining(TrainingRegistrationRequest req, String username, String password, String transactionId) {
 
-        logger.info("Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
-                req.traineeUsername(), req.trainerUsername(), req.trainingName(), req.trainingDate(), req.duration());
+        logger.info("[{}] Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
+                transactionId,
+                req.traineeUsername(),
+                req.trainerUsername(),
+                req.trainingName(), req.trainingDate(), req.duration());
 
         // I am considering that trainee himself/herself should be able to register the
         // training of their choice, if trainer should have that privilege,
@@ -69,7 +72,7 @@ public class TrainingServiceImpl implements TrainingService {
         trainer.getTrainees().add(trainee);
         traineeRepository.save(trainee);
 
-        logger.info("Training successfully created with ID [{}] for trainee [{}]",
+        logger.info("[{}] Training successfully created with ID [{}] for trainee [{}]", transactionId,
                 savedTraining.getId(), req.traineeUsername());
     }
 }

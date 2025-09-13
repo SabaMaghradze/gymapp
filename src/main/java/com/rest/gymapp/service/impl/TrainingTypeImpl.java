@@ -29,17 +29,20 @@ public class TrainingTypeImpl implements TrainingTypeService {
     private final Mappers mapper;
 
     @Override
-    public List<TrainingTypeResponse> getAllTrainingTypes(String username, String password) {
+    public List<TrainingTypeResponse> getAllTrainingTypes(String username, String password, String transactionId) {
 
-        logger.info("Fetching all training types...");
+        logger.info("[{}] Fetching all training types...", transactionId);
 
         authenticationService.authenticateUser(username, password);
 
         List<TrainingType> types = trainingTypeRepository.findAll();
 
         if (types.isEmpty()) {
+            logger.info("[{}] Failed to fetch training types", transactionId);
             throw new ResourceNotFoundException("Failed to fetch training types");
         }
+
+        logger.info("[{}] training types list successfully retrieved", transactionId);
 
         return types.stream()
                 .map(mapper::getTrainingTypeResponse)
@@ -47,17 +50,22 @@ public class TrainingTypeImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password) {
+    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password, String transactionId) {
 
         authenticationService.authenticateTrainer(username, password);
 
+        logger.info("[{}] {} is created training type : {}", transactionId, username, req.trainingTypeName());
+
         if (trainingTypeRepository.findByTrainingTypeName(req.trainingTypeName()).isPresent()) {
+            logger.info("[{}] failed to create training type as it already exists", transactionId);
             throw new ResourceAlreadyExistsException("Training Type already exists");
         }
 
         TrainingType savedTrainingType = trainingTypeRepository.save(
                 new TrainingType(req.trainingTypeName())
         );
+
+        logger.info("[{}] successfully created training type: {}", transactionId, req.trainingTypeName());
 
         return mapper.getTrainingTypeResponse(savedTrainingType);
     }
