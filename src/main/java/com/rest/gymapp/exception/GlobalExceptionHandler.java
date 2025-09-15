@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -85,6 +86,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(ResourceAlreadyExistsException exc, WebRequest request) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
+                exc.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(UserInactiveException.class)
+    public ResponseEntity<ErrorResponse> handleUserInactiveException(UserInactiveException exc, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.LOCKED.value(),
+                exc.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(error, HttpStatus.LOCKED);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException exc, WebRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONTINUE.value(),
                 exc.getMessage(),
                 request.getDescription(false)
         );

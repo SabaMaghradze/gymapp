@@ -20,8 +20,10 @@ import com.rest.gymapp.utils.Mappers;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -122,27 +124,29 @@ public class TrainerServiceImpl implements TrainerService {
         return response;
     }
 
+    // we are assuming that trainers can change each other's statuses, since we don't have
+    // admin functionality set up yet.
     @Transactional
     public void activateDeactivateTrainer(TrainerActivationRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] {} trainer with username={}", transactionId,
-                req.isActive() ? "Activating" : "Deactivating", username);
+                req.isActive() ? "Activating" : "Deactivating", req.username());
 
         authenticationService.authenticateTrainer(username, password);
 
-        Trainer trainer = trainerRepository.findByUserUsername(username)
+        Trainer trainer = trainerRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         if (trainer.getUser().getIsActive() == req.isActive()) {
             logger.warn("Trainer is already {}", req.isActive() ? "active" : "inactive");
-            return;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already " + (req.isActive() ? "active" : "inactive"));
         }
 
         trainer.getUser().setIsActive(req.isActive());
         userRepository.save(trainer.getUser());
 
         logger.info("[{}] Successfully {} trainer username={}", transactionId,
-                req.isActive() ? "activated" : "deactivated", username);
+                req.isActive() ? "activated" : "deactivated", req.username());
     }
 
     public List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String username,

@@ -2,6 +2,7 @@ package com.rest.gymapp.service.impl;
 
 import com.rest.gymapp.exception.InvalidCredentialsException;
 import com.rest.gymapp.exception.ResourceNotFoundException;
+import com.rest.gymapp.exception.UserInactiveException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.User;
 import com.rest.gymapp.repository.TraineeRepository;
@@ -55,7 +56,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (!user.getIsActive()) {
             logger.warn("Authentication failed: User {} is deactivated", username);
-            throw new InvalidCredentialsException("Invalid username or password");
+            throw new UserInactiveException("The user is inactive");
         }
 
         if (!user.getPassword().equals(password)) {

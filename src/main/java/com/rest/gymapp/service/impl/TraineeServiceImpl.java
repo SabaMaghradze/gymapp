@@ -25,8 +25,10 @@ import com.rest.gymapp.utils.Mappers;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -99,26 +101,27 @@ public class TraineeServiceImpl implements TraineeService {
         return response;
     }
 
+    // also assuming that trainer can change the status of a trainee instead of admin,
+    // since we are not implementing admin functionality.
     @Transactional
     public void activateDeactivateTrainee(TraineeActivationRequest req, String username, String password, String transactionId) {
 
         logger.info("{} trainer with username: {}", req.isActive() ? "Activating" : "Deactivating", username);
 
-        // also assuming that trainee can change the status themselves instead of admin.
-        authenticationService.authenticateTrainee(username, password);
+        authenticationService.authenticateTrainer(username, password);
 
-        Trainee trainee = traineeRepository.findByUserUsername(username)
+        Trainee trainee = traineeRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
         if (trainee.getUser().getIsActive() == req.isActive()) {
             logger.warn("Trainer is already {}", req.isActive() ? "active" : "inactive");
-            return;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already " + (req.isActive() ? "active" : "inactive"));
         }
 
         trainee.getUser().setIsActive(req.isActive());
         userRepository.save(trainee.getUser());
 
-        logger.info("[{}] Successfully {} trainee with username: {}", transactionId, req.isActive() ? "activated" : "deactivated", username);
+        logger.info("[{}] Successfully {} trainee with username: {}", transactionId, req.isActive() ? "activated" : "deactivated", req.username());
     }
 
     @Transactional
