@@ -32,14 +32,14 @@ public class TrainingController {
             @ApiResponse(code = 404, message = "Trainer, trainee, or training type not found"),
             @ApiResponse(code = 400, message = "Bad request – invalid input")
     })
-    @PostMapping("/add-training")
+    @PostMapping
     public ResponseEntity<?> addTraining(
             @Valid @RequestBody TrainingRegistrationRequest req,
             @ApiParam(value = "Trainee's username", required = true) @RequestHeader String username,
             @ApiParam(value = "Trainee's password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] POST /api/trainings/add-training called by {}", transactionId, username);
+        logger.info("[{}] POST /api/trainings called by {}", transactionId, username);
 
         trainingService.addTraining(req, username, password, transactionId);
 

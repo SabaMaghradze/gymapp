@@ -42,9 +42,10 @@ public class UserController {
             @ApiResponse(code = 200, message = "Password successfully changed"),
             @ApiResponse(code = 400, message = "Invalid credentials or bad request")
     })
-    @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest req) {
-        authenticationService.changePassword(req.username(), req.oldPassword(), req.newPassword());
+    @PutMapping("/password-renewal")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest req,
+                                            @RequestHeader String username) {
+        authenticationService.changePassword(username, req.oldPassword(), req.newPassword());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

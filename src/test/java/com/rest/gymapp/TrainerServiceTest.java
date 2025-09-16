@@ -173,7 +173,7 @@ class TrainerServiceTest {
 
         when(trainerRepository.findByUserUsername(username)).thenReturn(Optional.of(trainer));
 
-        TrainerActivationRequest req = new TrainerActivationRequest(true);
+        TrainerActivationRequest req = new TrainerActivationRequest(username, true);
 
         // when
         trainerService.activateDeactivateTrainer(req, username, password, transactionId);

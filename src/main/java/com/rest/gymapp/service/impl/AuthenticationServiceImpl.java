@@ -72,13 +72,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         logger.info("Changing password for user: {}", username);
 
-        Optional<User> userOpt = userRepository.findByUsername(username);
+        authenticateUser(username, oldPassword);
 
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException("Failed to find user " + username);
-        }
-
-        User user = userOpt.get();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!user.getPassword().equals(oldPassword)) {
             throw new InvalidCredentialsException("Wrong password, please try again");

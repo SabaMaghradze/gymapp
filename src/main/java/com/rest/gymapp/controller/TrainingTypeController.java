@@ -22,7 +22,7 @@ import java.util.UUID;
 public class TrainingTypeController {
 
     private final TrainingTypeService trainingTypeService;
-    private static final Logger logger = LoggerFactory.getLogger(TrainerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TrainingTypeController.class);
 
     @ApiOperation(
             value = "Get all training types",
@@ -32,14 +32,14 @@ public class TrainingTypeController {
             @ApiResponse(code = 200, message = "Successfully retrieved training types"),
             @ApiResponse(code = 401, message = "Unauthorized – invalid credentials")
     })
-    @GetMapping("/all-training-types")
+    @GetMapping("/all")
     public ResponseEntity<List<TrainingTypeResponse>> getAllTrainingTypes(
             @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
             @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password
     ) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/training-types/all-training-types called by: {}", transactionId, username);
+        logger.info("[{}] GET /api/training-types/all called by: {}", transactionId, username);
 
         List<TrainingTypeResponse> result = trainingTypeService.getAllTrainingTypes(username, password, transactionId);
 
@@ -57,14 +57,14 @@ public class TrainingTypeController {
             @ApiResponse(code = 400, message = "Bad request – invalid input"),
             @ApiResponse(code = 401, message = "Unauthorized – invalid credentials")
     })
-    @PostMapping("/add-type")
+    @PostMapping
     public ResponseEntity<TrainingTypeResponse> addTrainingType(
             @RequestBody TrainingTypeRegistrationRequest req,
             @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
             @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] POST /api/training-types/all-training-types called with payload: {}", transactionId, req);
+        logger.info("[{}] POST /api/training-types called with payload: {}", transactionId, req);
 
         TrainingTypeResponse result = trainingTypeService.addTrainingType(req, username, password, transactionId);
 
