@@ -59,9 +59,9 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "Trainee not found"),
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
-    @GetMapping("/trainee")
+    @GetMapping("/profile/{username}")
     public ResponseEntity<TraineeProfileResponse> getTrainee(
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
     ) {
 
@@ -80,10 +80,10 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Profile updated successfully"),
             @ApiResponse(code = 404, message = "Trainee not found")
     })
-    @PutMapping("/update-trainee")
+    @PutMapping("/{username}")
     public ResponseEntity<TraineeUpdateResponse> updateTrainee(
             @Valid @RequestBody TraineeUpdateRequest req,
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -101,9 +101,9 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Trainee deleted successfully"),
             @ApiResponse(code = 404, message = "Trainee not found")
     })
-    @DeleteMapping("/delete-trainee")
+    @DeleteMapping("/{username}")
     public ResponseEntity<?> deleteTrainee(
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -117,9 +117,9 @@ public class TraineeController {
     }
 
     @ApiOperation(value = "Get non-assigned trainers", notes = "Lists trainers that are not assigned to this trainee.")
-    @GetMapping("/trainee/non-assigned-trainers")
+    @GetMapping("/{username}/non-assigned-trainers")
     public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
     ) {
 
@@ -134,10 +134,10 @@ public class TraineeController {
     }
 
     @ApiOperation(value = "Update trainee trainers", notes = "Assigns additional trainers to trainee.")
-    @PutMapping("/trainee/update-trainers")
+    @PutMapping("/{username}/trainers")
     public ResponseEntity<List<TrainerResponseBasic>> updateTrainers(
             @Valid @RequestBody UpdateTraineeTrainersRequest req,
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
     ) {
 
@@ -152,9 +152,9 @@ public class TraineeController {
     }
 
     @ApiOperation(value = "Get trainee trainings", notes = "Fetches trainings by date, trainer name, training type and other criteria")
-    @GetMapping("/trainee/trainings")
+    @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingResponseForTrainee>> getTraineeTrainings(
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
@@ -172,12 +172,11 @@ public class TraineeController {
         return ResponseEntity.ok(response);
     }
 
-    // to test
     @ApiOperation(value = "Change trainee activation status", notes = "Activates or deactivates the trainee profile.")
-    @PatchMapping("/trainee/activate-deactivate")
+    @PatchMapping("/{username}/activation")
     public ResponseEntity<?> changeActivationStatus(
             @Valid @RequestBody TraineeActivationRequest req,
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();

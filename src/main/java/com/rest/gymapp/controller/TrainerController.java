@@ -54,9 +54,9 @@ public class TrainerController {
             @ApiResponse(code = 404, message = "Trainer not found"),
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
-    @GetMapping("/trainer")
+    @GetMapping("/profile/username{}")
     public ResponseEntity<TrainerProfileResponse> getTrainer(
-            @ApiParam(value = "Trainer username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainer username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainer password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -73,10 +73,10 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Profile updated successfully"),
             @ApiResponse(code = 404, message = "Trainer not found")
     })
-    @PutMapping("/update-trainer")
+    @PutMapping("/{username}")
     public ResponseEntity<TrainerUpdateResponse> updateTrainer(
             @Valid @RequestBody TrainerUpdateRequest req,
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -94,9 +94,9 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Trainings fetched successfully"),
             @ApiResponse(code = 404, message = "No trainings found")
     })
-    @GetMapping("/trainer/trainings")
+    @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingResponseForTrainer>> findTrainerTrainings(
-            @ApiParam(value = "Trainer username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainer username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainer password", required = true) @RequestHeader String password,
             @ApiParam(value = "Start date (optional)") @RequestParam(required = false) LocalDate fromDate,
             @ApiParam(value = "End date (optional)") @RequestParam(required = false) LocalDate toDate,
@@ -118,10 +118,10 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Status updated successfully"),
             @ApiResponse(code = 404, message = "Trainer not found")
     })
-    @PatchMapping("/trainer/activate-deactivate")
+    @PatchMapping("/{username}/activation")
     public ResponseEntity<?> changeActivationStatus(
             @Valid @RequestBody TrainerActivationRequest req,
-            @ApiParam(value = "Trainee username", required = true) @RequestHeader String username,
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
 
         String transactionId = UUID.randomUUID().toString();
