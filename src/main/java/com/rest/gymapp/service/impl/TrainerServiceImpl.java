@@ -10,6 +10,7 @@ import com.rest.gymapp.dto.response.training.TrainingResponseForTrainer;
 import com.rest.gymapp.exception.ResourceNotFoundException;
 import com.rest.gymapp.exception.UserNotFoundException;
 import com.rest.gymapp.model.*;
+import com.rest.gymapp.monitoring.metrics.TrainerMetrics;
 import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.TrainingTypeRepository;
 import com.rest.gymapp.repository.UserRepository;
@@ -42,6 +43,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
     private final TrainingTypeRepository trainingTypeRepository;
+    private final TrainerMetrics trainerMetrics;
 
     @Transactional
     public RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId) {
@@ -70,9 +72,22 @@ public class TrainerServiceImpl implements TrainerService {
 
         trainerRepository.save(trainer);
 
+        trainerMetrics.incrementTrainersCreated();
+
         RegistrationResponse response = new RegistrationResponse(username, password);
         logger.info("[{}] Successfully created trainer profile: {}", transactionId, response);
         return response;
+    }
+
+    public List<Trainer> getAllTrainers() {
+
+        List<Trainer> allTrainers = trainerRepository.findAll();
+
+        if (allTrainers.isEmpty()) {
+            throw new ResourceNotFoundException("No trainers found");
+        }
+
+        return allTrainers;
     }
 
     public TrainerProfileResponse getTrainerByUsername(String username, String password, String transactionId) {

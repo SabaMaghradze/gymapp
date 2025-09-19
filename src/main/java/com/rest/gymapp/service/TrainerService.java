@@ -8,11 +8,14 @@ import com.rest.gymapp.dto.response.RegistrationResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerProfileResponse;
 import com.rest.gymapp.dto.response.trainer.TrainerUpdateResponse;
 import com.rest.gymapp.dto.response.training.TrainingResponseForTrainer;
+import com.rest.gymapp.model.Trainer;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public interface TrainerService {
+
+    List<Trainer> getAllTrainers();
 
     RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId);
 
@@ -29,6 +32,4 @@ public interface TrainerService {
                                                                     String traineeName,
                                                                     String transactionId
     );
-
-//    boolean changeTrainerPassword(String username, String oldPassword, String newPassword);
 }

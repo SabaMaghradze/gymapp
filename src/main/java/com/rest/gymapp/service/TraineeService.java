@@ -36,6 +36,4 @@ public interface TraineeService {
                                                           String transactionId);
 
     List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String username, String password, String transactionId);
-
-//    boolean changeTraineePassword(String username, String oldPassword, String newPassword);
 }

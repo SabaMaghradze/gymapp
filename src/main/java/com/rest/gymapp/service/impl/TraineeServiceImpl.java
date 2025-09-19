@@ -15,6 +15,7 @@ import com.rest.gymapp.model.Trainee;
 import com.rest.gymapp.model.Trainer;
 import com.rest.gymapp.model.Training;
 import com.rest.gymapp.model.User;
+import com.rest.gymapp.monitoring.metrics.TraineeMetrics;
 import com.rest.gymapp.repository.TraineeRepository;
 import com.rest.gymapp.repository.TrainerRepository;
 import com.rest.gymapp.repository.UserRepository;
@@ -48,6 +49,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
+    private final TraineeMetrics traineeMetrics;
 
     @Transactional
     public RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req, String transactionId) {
@@ -79,6 +81,8 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setUser(savedUser);
 
         traineeRepository.save(trainee);
+
+        traineeMetrics.incrementTraineesCreated();
 
         RegistrationResponse response = new RegistrationResponse(username, password);
         logger.info("[{}] Successfully created trainee profile: {}", transactionId, response);

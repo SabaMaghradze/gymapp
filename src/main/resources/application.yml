@@ -2,9 +2,9 @@ spring:
   application:
     name: gymapp_rest
   datasource:
-    url: jdbc:postgresql://localhost:5432/gymapp_rest
-    username: costigan
-    password: BillyCostigan
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
     database: POSTGRESQL
     show-sql: true
@@ -16,3 +16,15 @@ spring:
 server:
   port: 8082
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, env, prometheus, health, beans
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
