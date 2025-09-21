@@ -37,7 +37,7 @@ public class TraineeController {
             @ApiResponse(code = 201, message = "Trainee registered successfully"),
             @ApiResponse(code = 400, message = "Validation failed")
     })
-    @PostMapping("/registration")
+    @PostMapping
     public ResponseEntity<RegistrationResponse> registerTrainee(
             @Valid @RequestBody TraineeRegistrationRequest req) {
 
@@ -57,7 +57,7 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "Trainee not found"),
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
-    @GetMapping("/profile/{username}")
+    @GetMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> getTrainee(
             @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password

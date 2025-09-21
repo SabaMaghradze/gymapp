@@ -35,7 +35,7 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer registered successfully"),
             @ApiResponse(code = 400, message = "Validation failed")
     })
-    @PostMapping("/registration")
+    @PostMapping
     public ResponseEntity<RegistrationResponse> registerTrainer(
             @Valid @RequestBody TrainerRegistrationRequest req) {
 
@@ -54,7 +54,7 @@ public class TrainerController {
             @ApiResponse(code = 404, message = "Trainer not found"),
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
-    @GetMapping("/profile/{username}")
+    @GetMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> getTrainer(
             @ApiParam(value = "Trainer username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainer password", required = true) @RequestHeader String password) {
