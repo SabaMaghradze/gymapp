@@ -1,30 +1,7 @@
 spring:
   application:
-    name: gymapp_rest
-  datasource:
-    url: ${POSTGRES_URL}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
-  jpa:
-    database: POSTGRESQL
-    show-sql: true
-    open-in-view: true
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-server:
-  port: 8082
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics, env, prometheus, health, beans
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+    name: gymapp
+  config:
+    import: optional:configserver:http://localhost:8083
+  profiles:
+    active: stg
