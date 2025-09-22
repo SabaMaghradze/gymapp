@@ -8,11 +8,9 @@ import com.gymapp.dto.response.trainer.TrainerProfileResponse;
 import com.gymapp.dto.response.trainer.TrainerUpdateResponse;
 import com.gymapp.dto.response.training.TrainingResponseForTrainer;
 import com.gymapp.model.*;
-import com.gymapp.model.*;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.TrainingTypeRepository;
 import com.gymapp.repository.UserRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.impl.TrainerServiceImpl;
 import com.gymapp.utils.CredentialsGenerator;
 import com.gymapp.utils.Mappers;
@@ -43,9 +41,6 @@ class TrainerServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private AuthenticationService authenticationService;
 
     @Mock
     private CredentialsGenerator credentialsGenerator;
@@ -108,7 +103,6 @@ class TrainerServiceTest {
 
         // then
         assertEquals("John", result.getFirstName());
-        verify(authenticationService).authenticateTrainer(username, password);
     }
 
     @Test

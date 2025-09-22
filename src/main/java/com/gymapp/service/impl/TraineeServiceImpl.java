@@ -19,7 +19,6 @@ import com.gymapp.monitoring.metrics.TraineeMetrics;
 import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.UserRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.TraineeService;
 import com.gymapp.utils.CredentialsGenerator;
 import com.gymapp.utils.Mappers;
@@ -46,10 +45,19 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
-    private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
     private final TraineeMetrics traineeMetrics;
+
+    @Override
+    public TraineeProfileResponse getTraineeById(Long id, String transactionId) {
+
+        logger.info("Fetching trainee with id: {}, transaction id: {}", id, transactionId);
+
+        return traineeRepository.findById(id)
+                .map(mappers::getTraineeProfileResponse)
+                .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
+    }
 
     @Transactional
     public RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req, String transactionId) {
@@ -94,8 +102,6 @@ public class TraineeServiceImpl implements TraineeService {
 
         logger.info("[{}] Getting trainee profile for username: {}", transactionId, username);
 
-        authenticationService.authenticateTrainee(username, password);
-
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
@@ -111,8 +117,6 @@ public class TraineeServiceImpl implements TraineeService {
     public void activateDeactivateTrainee(TraineeActivationRequest req, String username, String password, String transactionId) {
 
         logger.info("{} trainer with username: {}", req.isActive() ? "Activating" : "Deactivating", username);
-
-        authenticationService.authenticateTrainer(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
@@ -132,8 +136,6 @@ public class TraineeServiceImpl implements TraineeService {
     public TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] Updating trainee profile for username: {}", transactionId, username);
-
-        authenticationService.authenticateTrainee(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
@@ -170,8 +172,6 @@ public class TraineeServiceImpl implements TraineeService {
 
         logger.info("[{}] Deleting trainee profile for username: {}", transactionId, username);
 
-        authenticationService.authenticateTrainee(username, password);
-
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));
 
@@ -183,8 +183,6 @@ public class TraineeServiceImpl implements TraineeService {
     public List<TrainerResponseBasic> findNonAssignedTrainers(String traineeUsername, String password, String transactionId) {
 
         logger.info("[{}] Searching for all trainers not assigned to trainee: {}", transactionId, traineeUsername);
-
-        authenticationService.authenticateTrainee(traineeUsername, password);
 
         List<TrainerResponseBasic> responses = new ArrayList<>();
 
@@ -232,8 +230,6 @@ public class TraineeServiceImpl implements TraineeService {
                                                                  String transactionId) {
 
         logger.info("[{}] Fetching trainings for trainee: {}", transactionId, username);
-
-        authenticationService.authenticateTrainee(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -288,8 +284,6 @@ public class TraineeServiceImpl implements TraineeService {
                                                             String transactionId) {
 
         logger.info("[{}] Fetching trainers of trainee: {}", transactionId, username);
-
-        authenticationService.authenticateTrainee(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found"));

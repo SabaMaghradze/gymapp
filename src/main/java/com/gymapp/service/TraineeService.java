@@ -15,6 +15,8 @@ import java.util.List;
 
 public interface TraineeService {
 
+    TraineeProfileResponse getTraineeById(Long id, String transactionId);
+
     RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req, String transactionId);
 
     TraineeProfileResponse getTraineeProfileByUsername(String username, String password, String transactionId);

@@ -13,12 +13,10 @@ import com.gymapp.model.Trainer;
 import com.gymapp.model.Training;
 import com.gymapp.model.TrainingType;
 import com.gymapp.model.User;
-import com.gymapp.model.*;
 import com.gymapp.monitoring.metrics.TrainerMetrics;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.TrainingTypeRepository;
 import com.gymapp.repository.UserRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.TrainerService;
 import com.gymapp.utils.CredentialsGenerator;
 import com.gymapp.utils.Mappers;
@@ -43,7 +41,6 @@ public class TrainerServiceImpl implements TrainerService {
 
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
-    private final AuthenticationService authenticationService;
     private final CredentialsGenerator credentialsGenerator;
     private final Mappers mappers;
     private final TrainingTypeRepository trainingTypeRepository;
@@ -98,8 +95,6 @@ public class TrainerServiceImpl implements TrainerService {
 
         logger.info("[{}] Getting trainer profile for username={}", transactionId, username);
 
-        authenticationService.authenticateTrainer(username, password);
-
         Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
@@ -112,8 +107,6 @@ public class TrainerServiceImpl implements TrainerService {
     public TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password, String transactionId) {
 
         logger.info("[{}] Updating trainer profile for username={}, payload={}", transactionId, username, req);
-
-        authenticationService.authenticateTrainer(username, password);
 
         Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
@@ -151,8 +144,6 @@ public class TrainerServiceImpl implements TrainerService {
         logger.info("[{}] {} trainer with username={}", transactionId,
                 req.isActive() ? "Activating" : "Deactivating", req.username());
 
-        authenticationService.authenticateTrainer(username, password);
-
         Trainer trainer = trainerRepository.findByUserUsername(req.username())
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
@@ -177,8 +168,6 @@ public class TrainerServiceImpl implements TrainerService {
 
         logger.info("[{}] Fetching trainings for trainer={}, fromDate={}, toDate={}, traineeName={}",
                 transactionId, username, fromDate, toDate, traineeName);
-
-        authenticationService.authenticateTrainer(username, password);
 
         Trainer trainer = trainerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Failed to find trainer"));

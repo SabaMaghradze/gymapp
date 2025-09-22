@@ -11,7 +11,6 @@ import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.TrainingRepository;
 import com.gymapp.repository.TrainingTypeRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.TrainingService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ public class TrainingServiceImpl implements TrainingService {
     private static final Logger logger = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
     private final TrainingRepository trainingRepository;
-    private final AuthenticationService authenticationService;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
@@ -38,11 +36,6 @@ public class TrainingServiceImpl implements TrainingService {
                 req.traineeUsername(),
                 req.trainerUsername(),
                 req.trainingName(), req.trainingDate(), req.duration());
-
-        // I am considering that trainee himself/herself should be able to register the
-        // training of their choice, if trainer should have that privilege,
-        // then we will authenticate trainer instead of trainee.
-        authenticationService.authenticateTrainee(username, password);
 
         Trainee trainee = traineeRepository.findByUserUsername(req.traineeUsername())
                 .orElseThrow(() -> new UserNotFoundException("Trainee not found: " + req.traineeUsername()));

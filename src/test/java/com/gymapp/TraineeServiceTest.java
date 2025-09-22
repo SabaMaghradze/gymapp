@@ -12,12 +12,10 @@ import com.gymapp.dto.response.trainer.TrainerResponseBasic;
 import com.gymapp.model.Trainee;
 import com.gymapp.model.Trainer;
 import com.gymapp.model.User;
-import com.gymapp.model.*;
 import com.gymapp.exception.UserNotFoundException;
 import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.UserRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.impl.TraineeServiceImpl;
 import com.gymapp.utils.CredentialsGenerator;
 import com.gymapp.utils.Mappers;
@@ -41,14 +39,16 @@ class TraineeServiceTest {
 
     @Mock
     private TraineeRepository traineeRepository;
+
     @Mock
     private TrainerRepository trainerRepository;
+
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private AuthenticationService authenticationService;
+
     @Mock
     private CredentialsGenerator credentialsGenerator;
+
     @Mock
     private Mappers mappers;
 
@@ -100,7 +100,6 @@ class TraineeServiceTest {
         TraineeProfileResponse response = traineeService.getTraineeProfileByUsername("john.doe", "pass", transactionId);
 
         assertThat(response.getFirstName()).isEqualTo("John");
-        verify(authenticationService).authenticateTrainee("john.doe", "pass");
     }
 
     @Test

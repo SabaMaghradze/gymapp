@@ -2,7 +2,6 @@ package com.gymapp.controller;
 
 import com.gymapp.dto.request.auth.LoginRequest;
 import com.gymapp.dto.request.auth.PasswordChangeRequest;
-import com.gymapp.service.AuthenticationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "User Authentication")
 public class UserController {
 
-    private final AuthenticationService authenticationService;
-
     @ApiOperation(
             value = "User login",
             notes = "Authenticates a user with their username and password."
@@ -30,7 +27,7 @@ public class UserController {
     })
     @GetMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest req) {
-        authenticationService.authenticateUser(req.username(), req.password());
+//        authenticationService.authenticateUser(req.username(), req.password());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -45,7 +42,7 @@ public class UserController {
     @PutMapping("/password-renewal")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest req,
                                             @RequestHeader String username) {
-        authenticationService.changePassword(username, req.oldPassword(), req.newPassword());
+//        authenticationService.changePassword(username, req.oldPassword(), req.newPassword());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

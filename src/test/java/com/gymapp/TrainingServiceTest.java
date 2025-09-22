@@ -5,13 +5,10 @@ import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.TrainingRepository;
 import com.gymapp.repository.TrainingTypeRepository;
-import com.gymapp.model.*;
 import com.gymapp.dto.request.training.TrainingRegistrationRequest;
 import com.gymapp.exception.ResourceNotFoundException;
 import com.gymapp.exception.UserNotFoundException;
-import com.gymapp.repository.*;
 import com.gymapp.service.impl.TrainingServiceImpl;
-import com.gymapp.service.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,12 +25,13 @@ class TrainingServiceTest {
 
     @Mock
     private TrainingRepository trainingRepository;
-    @Mock
-    private AuthenticationService authenticationService;
+
     @Mock
     private TraineeRepository traineeRepository;
+
     @Mock
     private TrainerRepository trainerRepository;
+
     @Mock
     private TrainingTypeRepository trainingTypeRepository;
 
@@ -85,7 +83,6 @@ class TrainingServiceTest {
 
         trainingService.addTraining(request, "traineeUser", "password", "tx123");
 
-        verify(authenticationService).authenticateTrainee("traineeUser", "password");
         verify(trainingRepository).save(any(Training.class));
         verify(traineeRepository).save(any(Trainee.class));
     }

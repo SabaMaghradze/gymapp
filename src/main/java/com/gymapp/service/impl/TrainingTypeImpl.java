@@ -6,7 +6,6 @@ import com.gymapp.exception.ResourceAlreadyExistsException;
 import com.gymapp.exception.ResourceNotFoundException;
 import com.gymapp.model.TrainingType;
 import com.gymapp.repository.TrainingTypeRepository;
-import com.gymapp.service.AuthenticationService;
 import com.gymapp.service.TrainingTypeService;
 import com.gymapp.utils.Mappers;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import java.util.List;
 public class TrainingTypeImpl implements TrainingTypeService {
 
     private final TrainingTypeRepository trainingTypeRepository;
-    private final AuthenticationService authenticationService;
     private static final Logger logger = LoggerFactory.getLogger(TrainingTypeImpl.class);
     private final Mappers mappers;
 
@@ -29,8 +27,6 @@ public class TrainingTypeImpl implements TrainingTypeService {
     public List<TrainingTypeResponse> getAllTrainingTypes(String username, String password, String transactionId) {
 
         logger.info("[{}] Fetching all training types...", transactionId);
-
-        authenticationService.authenticateUser(username, password);
 
         List<TrainingType> types = trainingTypeRepository.findAll();
 
@@ -48,8 +44,6 @@ public class TrainingTypeImpl implements TrainingTypeService {
 
     @Override
     public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password, String transactionId) {
-
-        authenticationService.authenticateTrainer(username, password);
 
         logger.info("[{}] {} is created training type : {}", transactionId, username, req.trainingTypeName());
 

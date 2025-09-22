@@ -51,6 +51,27 @@ public class TraineeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @ApiOperation(value = "Get trainee by id", notes = "Fetches trainee profile details by id.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Profile fetched successfully"),
+            @ApiResponse(code = 404, message = "Trainee not found"),
+            @ApiResponse(code = 401, message = "Invalid credentials")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<TraineeProfileResponse> getTraineeById(
+            @ApiParam(value = "Trainee username", required = true) @PathVariable Long id
+    ) {
+
+        String transactionId = UUID.randomUUID().toString();
+        logger.info("[{}] GET /api/trainees/{} called", transactionId, id);
+
+        TraineeProfileResponse response = traineeService.getTraineeById(id, transactionId);
+
+        logger.info("[{}] GET /api/trainees/{} response: {}", transactionId, id, response);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @ApiOperation(value = "Get trainee profile", notes = "Fetches trainee profile details by username.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Profile fetched successfully"),
@@ -58,7 +79,7 @@ public class TraineeController {
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
     @GetMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponse> getTrainee(
+    public ResponseEntity<TraineeProfileResponse> getTraineeByUsername(
             @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
             @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
     ) {
@@ -68,7 +89,7 @@ public class TraineeController {
 
         TraineeProfileResponse response = traineeService.getTraineeProfileByUsername(username, password, transactionId);
 
-        logger.info("[{}] GET /api/trainees/profile/{} response: {}", transactionId, username, response);
+        logger.info("[{}] GET /api/trainees/{} response: {}", transactionId, username, response);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
