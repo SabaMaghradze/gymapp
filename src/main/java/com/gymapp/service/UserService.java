@@ -8,6 +8,8 @@ public interface UserService {
 
     User getUserById(Long id);
 
+    boolean existsByUsername(String username);
+
     void updateResetToken(String username, String resetToken);
 
     User getUserByResetToken(String token);

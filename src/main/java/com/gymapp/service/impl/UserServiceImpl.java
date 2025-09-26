@@ -1,6 +1,6 @@
 package com.gymapp.service.impl;
 
-import com.gymapp.exception.UserNotFoundException;
+import com.gymapp.exception.user.UserNotFoundException;
 import com.gymapp.model.User;
 import com.gymapp.repository.UserRepository;
 import com.gymapp.service.UserService;
@@ -27,6 +27,11 @@ public class UserServiceImpl implements UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
     }
 
     @Override

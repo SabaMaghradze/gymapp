@@ -1,4 +1,4 @@
-package com.gymapp.exception;
+package com.gymapp.exception.user;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String message) {

@@ -1,4 +1,4 @@
-package com.gymapp.exception;
+package com.gymapp.exception.auth;
 
 public class LockedException extends RuntimeException {
     public LockedException(String message) {

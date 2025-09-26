@@ -1,6 +1,6 @@
 package com.gymapp.security.user;
 
-import com.gymapp.exception.UserNotFoundException;
+import com.gymapp.exception.user.UserNotFoundException;
 import com.gymapp.model.User;
 import com.gymapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

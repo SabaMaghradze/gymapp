@@ -12,6 +12,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Arrays;
 
+// remove this class
 @Configuration
 @EnableWebMvc
 public class CorsConfig {

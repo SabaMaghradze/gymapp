@@ -32,15 +32,12 @@ public class TrainingTypeController {
             @ApiResponse(code = 401, message = "Unauthorized – invalid credentials")
     })
     @GetMapping("/all")
-    public ResponseEntity<List<TrainingTypeResponse>> getAllTrainingTypes(
-            @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
-            @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password
-    ) {
+    public ResponseEntity<List<TrainingTypeResponse>> getAllTrainingTypes() {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/training-types/all called by: {}", transactionId, username);
+        logger.info("[{}] GET /api/training-types/all called", transactionId);
 
-        List<TrainingTypeResponse> result = trainingTypeService.getAllTrainingTypes(username, password, transactionId);
+        List<TrainingTypeResponse> result = trainingTypeService.getAllTrainingTypes(transactionId);
 
         logger.info("[{}] Training types retrieved successfully: {}", transactionId, result);
 
@@ -58,14 +55,12 @@ public class TrainingTypeController {
     })
     @PostMapping
     public ResponseEntity<TrainingTypeResponse> addTrainingType(
-            @RequestBody TrainingTypeRegistrationRequest req,
-            @ApiParam(value = "Username of the requester", required = true) @RequestHeader String username,
-            @ApiParam(value = "Password of the requester", required = true) @RequestHeader String password) {
+            @RequestBody TrainingTypeRegistrationRequest req) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] POST /api/training-types called with payload: {}", transactionId, req);
 
-        TrainingTypeResponse result = trainingTypeService.addTrainingType(req, username, password, transactionId);
+        TrainingTypeResponse result = trainingTypeService.addTrainingType(req, transactionId);
 
         logger.info("[{}] Training type registered successfully: {}", transactionId, result);
 

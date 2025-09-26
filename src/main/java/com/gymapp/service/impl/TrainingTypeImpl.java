@@ -2,8 +2,8 @@ package com.gymapp.service.impl;
 
 import com.gymapp.dto.request.trainingType.TrainingTypeRegistrationRequest;
 import com.gymapp.dto.response.trainingtype.TrainingTypeResponse;
-import com.gymapp.exception.ResourceAlreadyExistsException;
-import com.gymapp.exception.ResourceNotFoundException;
+import com.gymapp.exception.resource.ResourceAlreadyExistsException;
+import com.gymapp.exception.resource.ResourceNotFoundException;
 import com.gymapp.model.TrainingType;
 import com.gymapp.repository.TrainingTypeRepository;
 import com.gymapp.service.TrainingTypeService;
@@ -24,7 +24,7 @@ public class TrainingTypeImpl implements TrainingTypeService {
     private final Mappers mappers;
 
     @Override
-    public List<TrainingTypeResponse> getAllTrainingTypes(String username, String password, String transactionId) {
+    public List<TrainingTypeResponse> getAllTrainingTypes(String transactionId) {
 
         logger.info("[{}] Fetching all training types...", transactionId);
 
@@ -43,9 +43,9 @@ public class TrainingTypeImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String username, String password, String transactionId) {
+    public TrainingTypeResponse addTrainingType(TrainingTypeRegistrationRequest req, String transactionId) {
 
-        logger.info("[{}] {} is created training type : {}", transactionId, username, req.trainingTypeName());
+        logger.info("[{}] training type has been created: {}", transactionId, req.trainingTypeName());
 
         if (trainingTypeRepository.findByTrainingTypeName(req.trainingTypeName()).isPresent()) {
             logger.info("[{}] failed to create training type as it already exists", transactionId);

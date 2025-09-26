@@ -1,23 +1,34 @@
 package com.gymapp.service.impl;
 
 import com.gymapp.dto.request.auth.LoginRequest;
-import com.gymapp.exception.AuthenticationException;
-import com.gymapp.exception.BadCredentialsException;
-import com.gymapp.exception.LockedException;
+import com.gymapp.dto.request.auth.UserRegistrationRequest;
+import com.gymapp.dto.response.auth.JwtResponse;
+import com.gymapp.dto.response.auth.UserRegistrationResponse;
+import com.gymapp.exception.auth.AuthenticationException;
+import com.gymapp.exception.auth.BadCredentialsException;
+import com.gymapp.exception.auth.LockedException;
+import com.gymapp.exception.role.RoleNotFoundException;
+import com.gymapp.exception.user.UserAlreadyExistsException;
+import com.gymapp.model.Role;
 import com.gymapp.model.User;
+import com.gymapp.repository.RoleRepository;
+import com.gymapp.repository.UserRepository;
 import com.gymapp.security.jwt.JwtUtil;
 import com.gymapp.security.user.UserDetailsCustom;
 import com.gymapp.service.AuthService;
 import com.gymapp.service.UserService;
 import com.gymapp.utils.AppContants;
+import com.gymapp.utils.CredentialsGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,15 +39,23 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final CredentialsGenerator credentialsGenerator;
+    private final UserRepository userRepository;
 
     @Override
-    public void authenticateUser(LoginRequest loginRequest) {
+    public JwtResponse authenticateUser(LoginRequest loginRequest) {
 
         String username = loginRequest.username();
         User user = userService.getUserByUsername(username);
 
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.username(), loginRequest.password()));
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(
+                            loginRequest.username(),
+                            loginRequest.password()));
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtil.generateToken(authentication);
 
@@ -49,8 +68,9 @@ public class AuthServiceImpl implements AuthService {
 
             userService.resetFailedAttempts(user);
 
-        } catch (AuthenticationException exc) {
+            return new JwtResponse(username, jwt, roles);
 
+        } catch (AuthenticationException exc) {
             if (user.getIsEnabled()) {
                 if (user.getAccNonLocked()) {
                     if (user.getNumberOfFailedAttempts() < AppContants.ATTEMPT_COUNT) {
@@ -71,5 +91,36 @@ public class AuthServiceImpl implements AuthService {
                 throw new LockedException("Your account is inactive");
             }
         }
+    }
+
+    @Override
+    public UserRegistrationResponse registerUser(UserRegistrationRequest req) {
+
+        String username = credentialsGenerator.generateUsername(req.firstName(), req.lastName(), userRepository);
+
+        if (userService.existsByUsername(username)) {
+            throw new UserAlreadyExistsException(username + " already exists");
+        }
+
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new RoleNotFoundException("Role ROLE_USER not found."));
+
+        User user = new User();
+
+        user.setFirstName(req.firstName());
+        user.setLastName(req.lastName());
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(req.password()));
+
+        user.setIsActive(true);
+        user.setIsEnabled(true);
+        user.setAccNonLocked(true);
+        user.setNumberOfFailedAttempts(0);
+
+        user.setRoles(Collections.singletonList(userRole));
+
+        userRepository.save(user);
+
+        return new UserRegistrationResponse(req.firstName(), req.lastName(), username);
     }
 }

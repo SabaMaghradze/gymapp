@@ -12,7 +12,7 @@ import com.gymapp.dto.response.trainer.TrainerResponseBasic;
 import com.gymapp.model.Trainee;
 import com.gymapp.model.Trainer;
 import com.gymapp.model.User;
-import com.gymapp.exception.UserNotFoundException;
+import com.gymapp.exception.user.UserNotFoundException;
 import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.UserRepository;
