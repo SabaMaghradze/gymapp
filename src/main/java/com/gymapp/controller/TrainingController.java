@@ -28,20 +28,18 @@ public class TrainingController {
     )
     @ApiResponses({
             @ApiResponse(code = 200, message = "Training successfully registered"),
-            @ApiResponse(code = 401, message = "Unauthorized – invalid credentials"),
+            @ApiResponse(code = 401, message = "Unauthorized – Full authentication required"),
             @ApiResponse(code = 404, message = "Trainer, trainee, or training type not found"),
             @ApiResponse(code = 400, message = "Bad request – invalid input")
     })
     @PostMapping
     public ResponseEntity<?> addTraining(
-            @Valid @RequestBody TrainingRegistrationRequest req,
-            @ApiParam(value = "Trainee's username", required = true) @RequestHeader String username,
-            @ApiParam(value = "Trainee's password", required = true) @RequestHeader String password) {
+            @Valid @RequestBody TrainingRegistrationRequest req) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] POST /api/trainings called by {}", transactionId, username);
+        logger.info("[{}] POST /api/trainings called", transactionId);
 
-        trainingService.addTraining(req, username, password, transactionId);
+        trainingService.addTraining(req, transactionId);
 
         logger.info("[{}] Training added successfully", transactionId);
 

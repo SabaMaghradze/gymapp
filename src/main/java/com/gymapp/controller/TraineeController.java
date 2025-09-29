@@ -42,11 +42,11 @@ public class TraineeController {
             @Valid @RequestBody TraineeRegistrationRequest req) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] POST /api/trainees/registration called: {}", transactionId, req);
+        logger.info("[{}] POST /api/trainees called: {}", transactionId, req);
 
         RegistrationResponse response = traineeService.createTraineeProfile(req, transactionId);
 
-        logger.info("[{}] POST /api/trainees/registration response: {}", transactionId, response);
+        logger.info("[{}] POST /api/trainees response: {}", transactionId, response);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -55,7 +55,7 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Profile fetched successfully"),
             @ApiResponse(code = 404, message = "Trainee not found"),
-            @ApiResponse(code = 401, message = "Invalid credentials")
+            @ApiResponse(code = 401, message = "Full authentication required")
     })
     @GetMapping("/{id}")
     public ResponseEntity<TraineeProfileResponse> getTraineeById(
@@ -76,18 +76,17 @@ public class TraineeController {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Profile fetched successfully"),
             @ApiResponse(code = 404, message = "Trainee not found"),
-            @ApiResponse(code = 401, message = "Invalid credentials")
+            @ApiResponse(code = 401, message = "Full authentication required")
     })
-    @GetMapping("/{username}")
+    @GetMapping("/{username}/profile")
     public ResponseEntity<TraineeProfileResponse> getTraineeByUsername(
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
+            @ApiParam(value = "Trainee username", required = true) @PathVariable String username
     ) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/trainees/profile/{} called: {}", transactionId, username, username);
+        logger.info("[{}] GET /api/trainees/{}/profile called: {}", transactionId, username, username);
 
-        TraineeProfileResponse response = traineeService.getTraineeProfileByUsername(username, password, transactionId);
+        TraineeProfileResponse response = traineeService.getTraineeProfileByUsername(username, transactionId);
 
         logger.info("[{}] GET /api/trainees/{} response: {}", transactionId, username, response);
 
@@ -99,18 +98,17 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Profile updated successfully"),
             @ApiResponse(code = 404, message = "Trainee not found")
     })
-    @PutMapping("/{username}")
+    @PutMapping("/{id}")
     public ResponseEntity<TraineeUpdateResponse> updateTrainee(
             @Valid @RequestBody TraineeUpdateRequest req,
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
+            @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] PUT /api/trainees/{} called: {}", transactionId, username, username);
+        logger.info("[{}] PUT /api/trainees/{} called", transactionId, id);
 
-        TraineeUpdateResponse response = traineeService.updateTraineeProfile(req, username, password, transactionId);
+        TraineeUpdateResponse response = traineeService.updateTraineeProfile(req, id, transactionId);
 
-        logger.info("[{}] PUT /api/trainees/{} response: {}", transactionId, username, response);
+        logger.info("[{}] PUT /api/trainees/{} response: {}", transactionId, id, response);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -120,61 +118,54 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Trainee deleted successfully"),
             @ApiResponse(code = 404, message = "Trainee not found")
     })
-    @DeleteMapping("/{username}")
-    public ResponseEntity<?> deleteTrainee(
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTrainee(@PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] DELETE /api/trainees/{} called: {}", transactionId, username, username);
+        logger.info("[{}] DELETE /api/trainees/{} called", transactionId, id);
 
-        traineeService.deleteTraineeProfile(username, password, transactionId);
+        traineeService.deleteTraineeProfile(id, transactionId);
 
-        logger.info("[{}] DELETE /api/trainees/{} response: success", transactionId, username);
+        logger.info("[{}] DELETE /api/trainees/{} response: success", transactionId, id);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @ApiOperation(value = "Get non-assigned trainers", notes = "Lists trainers that are not assigned to this trainee.")
-    @GetMapping("/{username}/non-assigned-trainers")
-    public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
-    ) {
+    @GetMapping("/{id}/non-assigned-trainers")
+    public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(@PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/trainees/{}/non-assigned-trainers called: {}", transactionId, username, username);
+        logger.info("[{}] GET /api/trainees/{}/non-assigned-trainers called", transactionId, id);
 
-        List<TrainerResponseBasic> response = traineeService.findNonAssignedTrainers(username, password, transactionId);
+        List<TrainerResponseBasic> response = traineeService.findNonAssignedTrainers(id, transactionId);
 
-        logger.info("[{}] GET /api/trainees/{}/non-assigned-trainers response: {}", transactionId, username, response);
+        logger.info("[{}] GET /api/trainees/{}/non-assigned-trainers response: {}", transactionId, id, response);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @ApiOperation(value = "Update trainee trainers", notes = "Assigns additional trainers to trainee.")
-    @PutMapping("/{username}/trainers")
+    @PutMapping("/{id}/trainers")
     public ResponseEntity<List<TrainerResponseBasic>> updateTrainers(
             @Valid @RequestBody UpdateTraineeTrainersRequest req,
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password
+            @PathVariable Long id
     ) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] PUT /api/trainees/{}/trainers called: {}", transactionId, username, username);
+        logger.info("[{}] PUT /api/trainees/{}/trainers called", transactionId, id);
 
-        List<TrainerResponseBasic> response = traineeService.updateTraineeTrainers(req, username, password, transactionId);
+        List<TrainerResponseBasic> response = traineeService.updateTraineeTrainers(id, req, transactionId);
 
-        logger.info("[{}] PUT /api/trainees/{}/trainers response: {}", transactionId, username, response);
+        logger.info("[{}] PUT /api/trainees/{}/trainers response: {}", transactionId, id, response);
 
         return ResponseEntity.ok(response);
     }
 
     @ApiOperation(value = "Get trainee trainings", notes = "Fetches trainings by date, trainer name, training type and other criteria")
-    @GetMapping("/{username}/trainings")
+    @GetMapping("/{id}/trainings")
     public ResponseEntity<List<TrainingResponseForTrainee>> getTraineeTrainings(
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password,
+            @PathVariable Long id,
             @RequestParam(required = false) LocalDate fromDate,
             @RequestParam(required = false) LocalDate toDate,
             @RequestParam(required = false) String trainerName,
@@ -182,28 +173,26 @@ public class TraineeController {
     ) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/trainees/{}/trainings: {}", transactionId, username, username);
+        logger.info("[{}] GET /api/trainees/{}/trainings", transactionId, id);
 
-        List<TrainingResponseForTrainee> response = traineeService.findTraineeTrainings(username, password, fromDate, toDate, trainerName, trainingTypeName, transactionId);
+        List<TrainingResponseForTrainee> response = traineeService.findTraineeTrainings(id, fromDate, toDate, trainerName, trainingTypeName, transactionId);
 
-        logger.info("[{}] GET /api/trainees/{}/trainings response: {}", transactionId, username, response);
+        logger.info("[{}] GET /api/trainees/{}/trainings response: {}", transactionId, id, response);
 
         return ResponseEntity.ok(response);
     }
 
     @ApiOperation(value = "Change trainee activation status", notes = "Activates or deactivates the trainee profile.")
-    @PatchMapping("/{username}/activation")
+    @PatchMapping("/{id}/activation")
     public ResponseEntity<?> changeActivationStatus(
-            @Valid @RequestBody TraineeActivationRequest req,
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
+            @Valid @RequestBody TraineeActivationRequest req, @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] PATCH /api/trainees/{}/activation called: {}", transactionId, username, req);
+        logger.info("[{}] PATCH /api/trainees/{}/activation called", transactionId, req);
 
-        traineeService.activateDeactivateTrainee(req, username, password, transactionId);
+        traineeService.activateDeactivateTrainee(req, id, transactionId);
 
-        logger.info("[{}] PATCH /api/trainees/{}/activation response: success", transactionId, username);
+        logger.info("[{}] PATCH /api/trainees/{}/activation response: success", transactionId, id);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

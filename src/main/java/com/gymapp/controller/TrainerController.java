@@ -54,17 +54,16 @@ public class TrainerController {
             @ApiResponse(code = 404, message = "Trainer not found"),
             @ApiResponse(code = 401, message = "Invalid credentials")
     })
-    @GetMapping("/{username}")
+    @GetMapping("/{id}")
     public ResponseEntity<TrainerProfileResponse> getTrainer(
-            @ApiParam(value = "Trainer username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainer password", required = true) @RequestHeader String password) {
+            @ApiParam(value = "Trainer id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/trainers/profile/{} called for user: {}", transactionId, username, username);
+        logger.info("[{}] GET /api/trainers/{} called for user", transactionId, id);
 
-        TrainerProfileResponse response = trainerService.getTrainerByUsername(username, password, transactionId);
+        TrainerProfileResponse response = trainerService.getTrainerById(id, transactionId);
 
-        logger.info("[{}] Trainer profile retrieved successfully for username={}", transactionId, username);
+        logger.info("[{}] Trainer profile retrieved successfully for username={}", transactionId, id);
         return ResponseEntity.ok(response);
     }
 
@@ -73,18 +72,17 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Profile updated successfully"),
             @ApiResponse(code = 404, message = "Trainer not found")
     })
-    @PutMapping("/{username}")
+    @PutMapping("/{id}")
     public ResponseEntity<TrainerUpdateResponse> updateTrainer(
             @Valid @RequestBody TrainerUpdateRequest req,
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
+            @ApiParam(value = "Trainee username", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] PUT /api/trainers/{} called for username={} with payload={}", transactionId, username, username, req);
+        logger.info("[{}] PUT /api/trainers/{} called for trainer={} with payload={}", transactionId, id, id, req);
 
-        TrainerUpdateResponse response = trainerService.updateTrainerProfile(req, username, password, transactionId);
+        TrainerUpdateResponse response = trainerService.updateTrainerProfile(id, req, transactionId);
 
-        logger.info("[{}] Trainer profile updated successfully for username={}", transactionId, username);
+        logger.info("[{}] Trainer profile updated successfully for trainer={}", transactionId, id);
         return ResponseEntity.ok(response);
     }
 
@@ -93,22 +91,21 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Trainings fetched successfully"),
             @ApiResponse(code = 404, message = "No trainings found")
     })
-    @GetMapping("/{username}/trainings")
+    @GetMapping("/{id}/trainings")
     public ResponseEntity<List<TrainingResponseForTrainer>> findTrainerTrainings(
-            @ApiParam(value = "Trainer username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainer password", required = true) @RequestHeader String password,
+            @ApiParam(value = "Trainer id", required = true) @PathVariable Long id,
             @ApiParam(value = "Start date (optional)") @RequestParam(required = false) LocalDate fromDate,
             @ApiParam(value = "End date (optional)") @RequestParam(required = false) LocalDate toDate,
             @ApiParam(value = "Trainee name (optional)") @RequestParam(required = false) String traineeName
     ) {
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] GET /api/trainers/{}/trainings called for username={}, fromDate={}, toDate={}, traineeName={}",
-                transactionId, username, username, fromDate, toDate, traineeName);
+        logger.info("[{}] GET /api/trainers/{}/trainings called for trainer={}, fromDate={}, toDate={}, traineeName={}",
+                transactionId, id, id, fromDate, toDate, traineeName);
 
         List<TrainingResponseForTrainer> response =
-                trainerService.findTrainerTrainingsByCriteria(username, password, fromDate, toDate, traineeName, transactionId);
+                trainerService.findTrainerTrainingsByCriteria(id, fromDate, toDate, traineeName, transactionId);
 
-        logger.info("[{}] Found {} trainings for trainer={}", transactionId, response.size(), username);
+        logger.info("[{}] Found {} trainings for trainer={}", transactionId, response.size(), id);
         return ResponseEntity.ok(response);
     }
 
@@ -117,18 +114,17 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Status updated successfully"),
             @ApiResponse(code = 404, message = "Trainer not found")
     })
-    @PatchMapping("/{username}/activation")
+    @PatchMapping("/{id}/activation")
     public ResponseEntity<?> changeActivationStatus(
             @Valid @RequestBody TrainerActivationRequest req,
-            @ApiParam(value = "Trainee username", required = true) @PathVariable String username,
-            @ApiParam(value = "Trainee password", required = true) @RequestHeader String password) {
+            @ApiParam(value = "Trainer id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
-        logger.info("[{}] PATCH /api/trainers/{}/activation called: {}", transactionId, username, req);
+        logger.info("[{}] PATCH /api/trainers/{}/activation called: {}", transactionId, id, req);
 
-        trainerService.activateDeactivateTrainer(req, username, password, transactionId);
+        trainerService.activateDeactivateTrainer(id, req, transactionId);
 
-        logger.info("[{}] PATCH /api/trainers/{}/activation response: success", transactionId, username);
+        logger.info("[{}] PATCH /api/trainers/{}/activation response: success", transactionId, id);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

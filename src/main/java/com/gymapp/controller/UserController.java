@@ -18,20 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @ApiOperation(
-            value = "User login",
-            notes = "Authenticates a user with their username and password."
-    )
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "User successfully authenticated"),
-            @ApiResponse(code = 400, message = "Invalid credentials or bad request")
-    })
-    @GetMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest req) {
-//        authenticationService.authenticateUser(req.username(), req.password());
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @ApiOperation(
             value = "Change user password",
             notes = "Allows a user to change their password by providing old and new passwords."
     )

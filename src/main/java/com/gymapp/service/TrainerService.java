@@ -18,14 +18,13 @@ public interface TrainerService {
 
     RegistrationResponse createTrainerProfile(TrainerRegistrationRequest req, String transactionId);
 
-    TrainerProfileResponse getTrainerByUsername(String username, String password, String transactionId);
+    TrainerProfileResponse getTrainerById(Long id, String transactionId);
 
-    TrainerUpdateResponse updateTrainerProfile(TrainerUpdateRequest req, String username, String password, String transactionId);
+    TrainerUpdateResponse updateTrainerProfile(Long id, TrainerUpdateRequest req, String transactionId);
 
-    void activateDeactivateTrainer(TrainerActivationRequest req, String username, String password, String transactionId);
+    void activateDeactivateTrainer(Long id, TrainerActivationRequest req, String transactionId);
 
-    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(String username,
-                                                                    String password,
+    List<TrainingResponseForTrainer> findTrainerTrainingsByCriteria(Long id,
                                                                     LocalDate fromDate,
                                                                     LocalDate toDate,
                                                                     String traineeName,

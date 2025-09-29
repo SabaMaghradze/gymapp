@@ -19,23 +19,22 @@ public interface TraineeService {
 
     RegistrationResponse createTraineeProfile(TraineeRegistrationRequest req, String transactionId);
 
-    TraineeProfileResponse getTraineeProfileByUsername(String username, String password, String transactionId);
+    TraineeProfileResponse getTraineeProfileByUsername(String username, String transactionId);
 
-    TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest request, String username, String password, String transactionId);
+    TraineeUpdateResponse updateTraineeProfile(TraineeUpdateRequest request, Long id, String transactionId);
 
-    void activateDeactivateTrainee(TraineeActivationRequest req, String username, String password, String transactionId);
+    void activateDeactivateTrainee(TraineeActivationRequest req, Long id, String transactionId);
 
-    void deleteTraineeProfile(String username, String password, String transactionId);
+    void deleteTraineeProfile(Long id, String transactionId);
 
-    List<TrainerResponseBasic> findNonAssignedTrainers(String traineeUsername, String password, String transactionId);
+    List<TrainerResponseBasic> findNonAssignedTrainers(Long id, String transactionId);
 
-    List<TrainingResponseForTrainee> findTraineeTrainings(String username,
-                                                          String password,
+    List<TrainingResponseForTrainee> findTraineeTrainings(Long id,
                                                           LocalDate fromDate,
                                                           LocalDate toDate,
                                                           String trainerName,
                                                           String trainingType,
                                                           String transactionId);
 
-    List<TrainerResponseBasic> updateTraineeTrainers(UpdateTraineeTrainersRequest req, String username, String password, String transactionId);
+    List<TrainerResponseBasic> updateTraineeTrainers(Long id, UpdateTraineeTrainersRequest req, String transactionId);
 }

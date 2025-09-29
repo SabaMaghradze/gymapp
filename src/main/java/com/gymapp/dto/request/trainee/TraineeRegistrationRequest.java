@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public record TraineeRegistrationRequest(
         @NotBlank(message = "First name is mandatory") String firstName,
         @NotBlank(message = "Last name is mandatory") String lastName,
+        @NotBlank(message = "Password is required") String password,
         @Past(message = "The date of birth must be in the past") LocalDate dateOfBirth,
         String address
 ) {

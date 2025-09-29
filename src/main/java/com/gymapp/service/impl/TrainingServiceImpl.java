@@ -29,7 +29,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
 
-    public void addTraining(TrainingRegistrationRequest req, String username, String password, String transactionId) {
+    public void addTraining(TrainingRegistrationRequest req, String transactionId) {
 
         logger.info("[{}] Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
                 transactionId,
