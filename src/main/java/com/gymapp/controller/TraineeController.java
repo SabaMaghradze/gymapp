@@ -59,7 +59,7 @@ public class TraineeController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<TraineeProfileResponse> getTraineeById(
-            @ApiParam(value = "Trainee username", required = true) @PathVariable Long id
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id
     ) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -101,7 +101,7 @@ public class TraineeController {
     @PutMapping("/{id}")
     public ResponseEntity<TraineeUpdateResponse> updateTrainee(
             @Valid @RequestBody TraineeUpdateRequest req,
-            @PathVariable Long id) {
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] PUT /api/trainees/{} called", transactionId, id);
@@ -119,7 +119,8 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "Trainee not found")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTrainee(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTrainee(
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] DELETE /api/trainees/{} called", transactionId, id);
@@ -133,7 +134,8 @@ public class TraineeController {
 
     @ApiOperation(value = "Get non-assigned trainers", notes = "Lists trainers that are not assigned to this trainee.")
     @GetMapping("/{id}/non-assigned-trainers")
-    public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(@PathVariable Long id) {
+    public ResponseEntity<List<TrainerResponseBasic>> getNonAssignedTrainers(
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] GET /api/trainees/{}/non-assigned-trainers called", transactionId, id);
@@ -149,7 +151,7 @@ public class TraineeController {
     @PutMapping("/{id}/trainers")
     public ResponseEntity<List<TrainerResponseBasic>> updateTrainers(
             @Valid @RequestBody UpdateTraineeTrainersRequest req,
-            @PathVariable Long id
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id
     ) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -165,11 +167,11 @@ public class TraineeController {
     @ApiOperation(value = "Get trainee trainings", notes = "Fetches trainings by date, trainer name, training type and other criteria")
     @GetMapping("/{id}/trainings")
     public ResponseEntity<List<TrainingResponseForTrainee>> getTraineeTrainings(
-            @PathVariable Long id,
-            @RequestParam(required = false) LocalDate fromDate,
-            @RequestParam(required = false) LocalDate toDate,
-            @RequestParam(required = false) String trainerName,
-            @RequestParam(required = false) String trainingTypeName
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id,
+            @ApiParam(value = "From date") @RequestParam(required = false) LocalDate fromDate,
+            @ApiParam(value = "To date") @RequestParam(required = false) LocalDate toDate,
+            @ApiParam(value = "Trainer name") @RequestParam(required = false) String trainerName,
+            @ApiParam(value = "Training type name") @RequestParam(required = false) String trainingTypeName
     ) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -185,7 +187,8 @@ public class TraineeController {
     @ApiOperation(value = "Change trainee activation status", notes = "Activates or deactivates the trainee profile.")
     @PatchMapping("/{id}/activation")
     public ResponseEntity<?> changeActivationStatus(
-            @Valid @RequestBody TraineeActivationRequest req, @PathVariable Long id) {
+            @Valid @RequestBody TraineeActivationRequest req,
+            @ApiParam(value = "Trainee id", required = true) @PathVariable Long id) {
 
         String transactionId = UUID.randomUUID().toString();
         logger.info("[{}] PATCH /api/trainees/{}/activation called", transactionId, req);

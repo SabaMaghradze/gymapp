@@ -72,7 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/trainers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/trainees").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/roles").permitAll()
+                        .requestMatchers("/api/roles/**").permitAll()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
