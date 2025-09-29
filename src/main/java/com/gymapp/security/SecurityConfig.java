@@ -71,8 +71,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/trainers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/trainees").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
                         .requestMatchers("/api/roles/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

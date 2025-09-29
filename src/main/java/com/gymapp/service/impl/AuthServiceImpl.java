@@ -9,11 +9,14 @@ import com.gymapp.exception.auth.BadCredentialsException;
 import com.gymapp.exception.auth.LockedException;
 import com.gymapp.exception.role.RoleNotFoundException;
 import com.gymapp.exception.user.UserAlreadyExistsException;
+import com.gymapp.model.BlacklistedToken;
 import com.gymapp.model.Role;
 import com.gymapp.model.User;
+import com.gymapp.repository.BlacklistedTokenRepository;
 import com.gymapp.repository.RoleRepository;
 import com.gymapp.repository.UserRepository;
 import com.gymapp.security.jwt.JwtUtil;
+import com.gymapp.security.jwt.TokenHashUtil;
 import com.gymapp.security.user.UserDetailsCustom;
 import com.gymapp.service.AuthService;
 import com.gymapp.service.UserService;
@@ -28,7 +31,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CredentialsGenerator credentialsGenerator;
     private final UserRepository userRepository;
+    private final BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Override
     public JwtResponse authenticateUser(LoginRequest loginRequest) {

@@ -5,14 +5,17 @@ import com.gymapp.dto.request.auth.UserRegistrationRequest;
 import com.gymapp.dto.response.auth.JwtResponse;
 import com.gymapp.dto.response.auth.UserRegistrationResponse;
 import com.gymapp.service.AuthService;
+import com.gymapp.service.BlacklistedTokenService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final BlacklistedTokenService blacklistedTokenService;
 
     @ApiOperation(
             value = "User Registration",
@@ -47,5 +51,29 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(authService.authenticateUser(loginRequest));
+    }
+
+    @ApiOperation(
+            value = "User logout",
+            notes = "Logs the user out by blacklisting the token"
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User successfully authenticated"),
+            @ApiResponse(code = 400, message = "Token has been revoked")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+
+        String header = request.getHeader("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Authorization header missing or invalid");
+        }
+
+        String token = header.substring(7);
+        blacklistedTokenService.blacklistToken(token);
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
