@@ -52,8 +52,6 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // this says that /api/trainee and trainers are accessible for everyone, but
-    // other requests (.anyRequest()) require authentication (.authenticated())
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
