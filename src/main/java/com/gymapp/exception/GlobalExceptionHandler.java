@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), req);
     }
 
-    // this takes care of @Valid failures automatically.
+    // handles @Valid failures automatically.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException exc) {
         Map<String, String> errors = new HashMap<>();

@@ -1,11 +1,9 @@
 services:
   postgres:
     image: postgres:15
-    container_name: postgres_server
+    container_name: postgres_server_gym
     environment:
-      POSTGRES_USER: postgres_superuser
-      POSTGRES_PASSWORD: password111
-      POSTGRES_DB: gymapp_default
+      POSTGRES_PASSWORD: rootpass
     ports:
       - "5432:5432"
     volumes:
@@ -14,7 +12,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin_client
+    container_name: pgadmin_client_gym
     environment:
       PGADMIN_DEFAULT_EMAIL: randemail@gmail.com
       PGADMIN_DEFAULT_PASSWORD: randpass1

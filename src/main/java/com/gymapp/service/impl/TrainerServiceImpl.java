@@ -39,7 +39,6 @@ import java.util.stream.Stream;
 public class TrainerServiceImpl implements TrainerService {
 
     private static final Logger logger = LoggerFactory.getLogger(TrainerServiceImpl.class);
-
     private final TrainerRepository trainerRepository;
     private final UserRepository userRepository;
     private final CredentialsGenerator credentialsGenerator;
