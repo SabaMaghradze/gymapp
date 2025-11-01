@@ -75,6 +75,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleLocked(RuntimeException ex, WebRequest req) {
         return buildResponse(HttpStatus.LOCKED, ex.getMessage(), req);
     }
+
+    @ExceptionHandler(WorkloadServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleWorkloadServiceUnavailable(WorkloadServiceUnavailableException ex, WebRequest req) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req);
+    }
 }
 
 

@@ -31,6 +31,12 @@ public class UserDetailsCustom implements UserDetails {
         return new UserDetailsCustom(user.getId(), user.getUsername(), user.getPassword(), authorities);
     }
 
+    public UserDetailsCustom(String username, String password, Collection<GrantedAuthority> authorities) {
+        this.username = username;
+        this.password = password;
+        this.authorities = authorities;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
