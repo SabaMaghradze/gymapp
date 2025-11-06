@@ -21,9 +21,10 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -39,6 +40,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final WorkloadServiceClient workloadServiceClient;
 
     @CircuitBreaker(name = "workloadService", fallbackMethod = "addTrainingFallback")
+    @Transactional
     public void addTraining(TrainingRegistrationRequest req, String transactionId) {
 
         logger.info("[{}] Attempting to add training for trainee [{}] with trainer [{}] and type [{}] on [{}] that will last [{}]",
@@ -74,6 +76,7 @@ public class TrainingServiceImpl implements TrainingService {
         trainer.getTrainees().add(trainee);
         traineeRepository.save(trainee);
 
+
         WorkloadRequest workloadRequest = new WorkloadRequest(
                 trainer.getUser().getUsername(),
                 trainer.getUser().getFirstName(),
@@ -81,12 +84,17 @@ public class TrainingServiceImpl implements TrainingService {
                 trainer.getUser().getIsActive(),
                 training.getTrainingDate(),
                 training.getTrainingDuration(),
-                "ADD"
+                "eee"
         );
 
-        logger.info("[{}] Sending workload for trainer: {}", transactionId, workloadRequest.getTrainerUsername());
 
-        workloadServiceClient.sendWorkload(workloadRequest);
+        try {
+            logger.info("[{}] Sending workload for trainer: {}", transactionId, workloadRequest.getTrainerUsername());
+            workloadServiceClient.sendWorkload(workloadRequest);
+        } catch (org.springframework.web.client.HttpClientErrorException ex) {
+            // Known 4xx — bubble up to API caller (rollback will happen due to @Transactional)
+            throw new ResponseStatusException(ex.getStatusCode(), ex.getMessage());
+        }
 
         logger.info("[{}] Training successfully created with ID [{}] for trainee [{}]", transactionId,
                 savedTraining.getId(), req.traineeUsername());
