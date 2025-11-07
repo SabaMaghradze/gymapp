@@ -10,10 +10,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
@@ -35,17 +38,13 @@ public class WorkloadServiceClientConfig {
 
         RestClient restClient = restClientBuilder
                 .baseUrl("http://gymapp-workload-service")
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + serviceToken)
                 .defaultStatusHandler(HttpStatusCode::is4xxClientError, (req, res) -> {
-
-                    String body = new String(res.getBody().readAllBytes());
+                    String body = StreamUtils.copyToString(res.getBody(), StandardCharsets.UTF_8);
                     logger.warn("Workload Service returned {} for {}: {}",
                             res.getStatusCode(), req.getURI(), body);
-
-                    throw new org.springframework.web.client.HttpClientErrorException(
-                            res.getStatusCode(), body
-                    );
+                    throw new ResponseStatusException(res.getStatusCode(), body);
                 })
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + serviceToken)
                 .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
