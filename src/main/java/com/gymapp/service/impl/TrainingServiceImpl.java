@@ -84,7 +84,7 @@ public class TrainingServiceImpl implements TrainingService {
                 trainer.getUser().getIsActive(),
                 training.getTrainingDate(),
                 training.getTrainingDuration(),
-                "EEE"
+                "ADD"
         );
 
         logger.info("[{}] Sending workload for trainer: {}", transactionId, workloadRequest.getTrainerUsername());
@@ -94,6 +94,7 @@ public class TrainingServiceImpl implements TrainingService {
                 savedTraining.getId(), req.traineeUsername());
     }
 
+    // Resilience4j locates a fallback whose last parameter type matches the thrown exception in client config.
     private void addTrainingFallback(TrainingRegistrationRequest req,
                                      String transactionId,
                                      ResponseStatusException ex) {
@@ -105,6 +106,7 @@ public class TrainingServiceImpl implements TrainingService {
                 ex);
     }
 
+    // generic fallback
     private void addTrainingFallback(TrainingRegistrationRequest req,
                                      String transactionId,
                                      Throwable ex) {
