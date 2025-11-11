@@ -1,6 +1,6 @@
 package com.gymapp.service.impl;
 
-import com.gymapp.client.WorkloadServiceClient;
+import com.gymapp.producer.WorkloadMessageProducer;
 import com.gymapp.dto.request.training.TrainingRegistrationRequest;
 import com.gymapp.dto.request.workloadrequest.WorkloadRequest;
 import com.gymapp.dto.response.training.TrainingResponse;
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final WorkloadServiceClient workloadServiceClient;
+    private final WorkloadMessageProducer workloadMessageProducer;
 
     @CircuitBreaker(name = "workloadService", fallbackMethod = "addTrainingFallback")
     @Transactional
@@ -88,7 +87,7 @@ public class TrainingServiceImpl implements TrainingService {
         );
 
         logger.info("[{}] Sending workload for trainer: {}", transactionId, workloadRequest.getTrainerUsername());
-        workloadServiceClient.sendWorkload(workloadRequest);
+        workloadMessageProducer.sendWorkload(workloadRequest);
 
         logger.info("[{}] Training successfully created with ID [{}] for trainee [{}]", transactionId,
                 savedTraining.getId(), req.traineeUsername());
@@ -138,7 +137,7 @@ public class TrainingServiceImpl implements TrainingService {
 
         logger.info("[{}] Sending cancellation workload for trainer: {}", transactionId, workloadRequest.getTrainerUsername());
 
-        workloadServiceClient.sendWorkload(workloadRequest);
+        workloadMessageProducer.sendWorkload(workloadRequest);
 
         trainingRepository.deleteById(trainingId);
     }
