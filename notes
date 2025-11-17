@@ -1,0 +1,37 @@
+Asynchronous Communication
+
+WorkloadRequest files on both ends (producer and consumer must be of the same package), because
+when it is serialized (converted from plain object to bytes), those bytes include package name, and if
+the package names are different, the bytes will not match.
+
+Java’s built‑in serialization turns the object into bytes.
+The serialized bytes contain:
+The fully qualified class name (package + class name): com.gymapp.common.WorkloadRequest
+The field values (trainerUsername, trainerFirstName, etc.).
+
+ActiveMQ stores those bytes and delivers them to Workload Service.
+
+JMS listener in Workload Service tries to deserialize those bytes.
+
+The deserialization process looks at the class name in the bytes: com.gymapp.common.WorkloadRequest
+
+It then calls: Class.forName("com.gymapp.common.WorkloadRequest")
+
+But in Workload Service, if the workload request's package path is different it will cause:
+Result: ClassNotFoundException.
+
+Summary: the files must be identical, because:
+
+serialization encodes the package + class name identifier, and deserialization will only succeed if that
+identifier matches the receiving JVM's exact class location.
+
+How to fix it?
+
+1) make sure the files are identical
+OR
+2) Don’t send Java objects via JMS (microservice best practice):
+   Send JSON instead.
+   Both services have their own local DTO and just map JSON field names to object fields.
+   Package names can be different — only field names matter.
+
+

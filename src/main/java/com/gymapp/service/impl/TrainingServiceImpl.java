@@ -2,7 +2,7 @@ package com.gymapp.service.impl;
 
 import com.gymapp.producer.WorkloadMessageProducer;
 import com.gymapp.dto.request.training.TrainingRegistrationRequest;
-import com.gymapp.dto.request.workloadrequest.WorkloadRequest;
+import com.gymapp.common.WorkloadRequest;
 import com.gymapp.dto.response.training.TrainingResponse;
 import com.gymapp.exception.WorkloadServiceUnavailableException;
 import com.gymapp.exception.resource.ResourceNotFoundException;

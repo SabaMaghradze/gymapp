@@ -1,4 +1,4 @@
-package com.gymapp.dto.request.workloadrequest;
+package com.gymapp.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
