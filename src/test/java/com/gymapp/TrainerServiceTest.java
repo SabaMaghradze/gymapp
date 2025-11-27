@@ -59,7 +59,7 @@ class TrainerServiceTest {
     @Test
     void createTrainerProfile_ShouldCreateAndReturnCredentials() {
 
-        TrainerRegistrationRequest request = new TrainerRegistrationRequest("John", "Doe", "Fitness");
+        TrainerRegistrationRequest request = new TrainerRegistrationRequest("John", "Doe", "pass123", "Fitness");
 
         TrainingType trainingType = new TrainingType();
         when(trainingTypeRepository.findByTrainingTypeName("Fitness"))
@@ -88,7 +88,8 @@ class TrainerServiceTest {
     @Test
     void getTrainerByUsername_ShouldReturnProfileResponse() {
         // given
-        String username = "trainer1";
+        Long id = 1L;
+        String username = "john.doe";
         String password = "pwd";
 
         Trainer trainer = new Trainer();
@@ -99,7 +100,7 @@ class TrainerServiceTest {
         when(mappers.getTrainerProfileResponse(trainer)).thenReturn(mockResponse);
 
         // when
-        TrainerProfileResponse result = trainerService.getTrainerByUsername(username, password, transactionId);
+        TrainerProfileResponse result = trainerService.getTrainerById(id, transactionId);
 
         // then
         assertEquals("John", result.getFirstName());
@@ -108,6 +109,7 @@ class TrainerServiceTest {
     @Test
     void updateTrainerProfile_ShouldUpdateNamesAndReturnResponse() {
         // given
+        Long id = 1L;
         String username = "trainer1";
         String password = "pwd";
         String transactionId = "tx-123";
@@ -143,7 +145,7 @@ class TrainerServiceTest {
 
         // when
         TrainerUpdateResponse response =
-                trainerService.updateTrainerProfile(request, username, password, transactionId);
+                trainerService.updateTrainerProfile(id, request, transactionId);
 
         // then
         assertEquals("newname", response.getUsername());
@@ -157,6 +159,7 @@ class TrainerServiceTest {
     @Test
     void activateDeactivateTrainer_ShouldUpdateStatus() {
         // given
+        Long id = 1L;
         String username = "trainer1";
         String password = "pwd";
 
@@ -171,7 +174,7 @@ class TrainerServiceTest {
         TrainerActivationRequest req = new TrainerActivationRequest(username, true);
 
         // when
-        trainerService.activateDeactivateTrainer(req, username, password, transactionId);
+        trainerService.activateDeactivateTrainer(id, req, transactionId);
 
         // then
         assertTrue(user.getIsActive());
@@ -181,6 +184,7 @@ class TrainerServiceTest {
     @Test
     void findTrainerTrainingsByCriteria_ShouldReturnFilteredList() {
         // given
+        Long id = 1L;
         String username = "john.smith";
         String password = "pwd";
 
@@ -213,7 +217,7 @@ class TrainerServiceTest {
 
         // when
         List<TrainingResponseForTrainer> result =
-                trainerService.findTrainerTrainingsByCriteria(username, password, null, null, "john", transactionId);
+                trainerService.findTrainerTrainingsByCriteria(id, null, null, "john", transactionId);
 
         // then
         assertEquals(1, result.size());

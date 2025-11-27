@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -42,6 +43,8 @@ class TrainingServiceTest {
     private Trainee trainee;
     private Trainer trainer;
     private TrainingType trainingType;
+
+    private String transactionId = UUID.randomUUID().toString();
 
     @BeforeEach
     void setUp() {
@@ -81,7 +84,7 @@ class TrainingServiceTest {
             return saved;
         });
 
-        trainingService.addTraining(request, "traineeUser", "password", "tx123");
+        trainingService.addTraining(request, transactionId);
 
         verify(trainingRepository).save(any(Training.class));
         verify(traineeRepository).save(any(Trainee.class));
@@ -92,7 +95,7 @@ class TrainingServiceTest {
         when(traineeRepository.findByUserUsername("traineeUser")).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () ->
-                trainingService.addTraining(request, "traineeUser", "password", "tx123")
+                trainingService.addTraining(request, transactionId)
         );
     }
 
@@ -102,7 +105,7 @@ class TrainingServiceTest {
         when(trainerRepository.findByUserUsername("trainerUser")).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () ->
-                trainingService.addTraining(request, "traineeUser", "password", "tx123")
+                trainingService.addTraining(request, transactionId)
         );
     }
 
@@ -113,7 +116,7 @@ class TrainingServiceTest {
         when(trainingTypeRepository.findByTrainingTypeName("Yoga")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
-                trainingService.addTraining(request, "traineeUser", "password", "tx123")
+                trainingService.addTraining(request, transactionId)
         );
     }
 
@@ -128,7 +131,7 @@ class TrainingServiceTest {
         when(trainingTypeRepository.findByTrainingTypeName("Yoga")).thenReturn(Optional.of(trainingType));
 
         assertThrows(ResourceNotFoundException.class, () ->
-                trainingService.addTraining(request, "traineeUser", "password", "tx123")
+                trainingService.addTraining(request, transactionId)
         );
     }
 }

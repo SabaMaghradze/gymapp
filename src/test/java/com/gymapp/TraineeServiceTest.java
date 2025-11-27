@@ -9,10 +9,14 @@ import com.gymapp.dto.response.RegistrationResponse;
 import com.gymapp.dto.response.trainee.TraineeProfileResponse;
 import com.gymapp.dto.response.trainee.TraineeUpdateResponse;
 import com.gymapp.dto.response.trainer.TrainerResponseBasic;
+import com.gymapp.exception.role.RoleNotFoundException;
+import com.gymapp.model.Role;
 import com.gymapp.model.Trainee;
 import com.gymapp.model.Trainer;
 import com.gymapp.model.User;
 import com.gymapp.exception.user.UserNotFoundException;
+import com.gymapp.monitoring.metrics.TraineeMetrics;
+import com.gymapp.repository.RoleRepository;
 import com.gymapp.repository.TraineeRepository;
 import com.gymapp.repository.TrainerRepository;
 import com.gymapp.repository.UserRepository;
@@ -25,6 +29,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -47,10 +54,19 @@ class TraineeServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
     private CredentialsGenerator credentialsGenerator;
 
     @Mock
     private Mappers mappers;
+
+    @Mock
+    private TraineeMetrics traineeMetrics;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -58,135 +74,237 @@ class TraineeServiceTest {
     private final String transactionId = "tx-123";
 
     private User user;
+
     private Trainee trainee;
+
+    private Role userRole;
 
     @BeforeEach
     void setUp() {
         user = new User();
+        user.setId(1L);
         user.setFirstName("John");
         user.setLastName("Doe");
         user.setUsername("john.doe");
-        user.setPassword("pass");
+        user.setPassword("encodedPassword");
         user.setIsActive(true);
+        user.setIsEnabled(true);
+        user.setAccNonLocked(true);
+        user.setNumberOfFailedAttempts(0);
 
         trainee = new Trainee();
         trainee.setUser(user);
+
+        trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(user);
+        trainee.setDateOfBirth(LocalDate.of(2000, 1, 1));
+        trainee.setAddress("Tbilisi");
+
+        userRole = new Role();
+        userRole.setName("ROLE_USER");
     }
 
 
     @Test
     void createTraineeProfile_success() {
-        TraineeRegistrationRequest req = new TraineeRegistrationRequest("John", "Doe", LocalDate.of(2000, 1, 1), "Tbilisi");
 
-        when(credentialsGenerator.generateUsername(any(), any(), any())).thenReturn("john.doe");
-        when(credentialsGenerator.generatePassword()).thenReturn("pwd123");
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+        TraineeRegistrationRequest req = new TraineeRegistrationRequest(
+                "John", "Doe", "password123", LocalDate.of(2001, 1, 1), "Tbilisi"
+        );
+
+        when(credentialsGenerator.generateUsername("John", "Doe", userRepository))
+                .thenReturn("john.doe");
+        when(passwordEncoder.encode("password123"))
+                .thenReturn("encodedPassword123");
+        when(roleRepository.findByName("ROLE_USER"))
+                .thenReturn(Optional.of(userRole));
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
+        when(traineeRepository.save(any(Trainee.class)))
+                .thenReturn(trainee);
 
         RegistrationResponse response = traineeService.createTraineeProfile(req, transactionId);
 
         assertThat(response.username()).isEqualTo("john.doe");
-        assertThat(response.password()).isEqualTo("pwd123");
-        verify(userRepository).save(any(User.class));
+        assertThat(response.password()).isEqualTo("password123");
+
+        verify(userRepository).save(argThat(user ->
+                user.getFirstName().equals("John") &&
+                        user.getLastName().equals("Doe") &&
+                        user.getUsername().equals("john.doe") &&
+                        user.getPassword().equals("encodedPassword123")
+        ));
         verify(traineeRepository).save(any(Trainee.class));
+        verify(traineeMetrics).incrementTraineesCreated();
     }
 
     @Test
-    void getTraineeProfileByUsername_success() {
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
-        when(mappers.getTraineeProfileResponse(any(Trainee.class)))
-                .thenReturn(new TraineeProfileResponse("John", "Doe", LocalDate.of(2000, 1, 1), "Tbilisi", true));
+    void createTraineeProfile_roleNotFound_throwsException() {
 
-        TraineeProfileResponse response = traineeService.getTraineeProfileByUsername("john.doe", "pass", transactionId);
+        TraineeRegistrationRequest req = new TraineeRegistrationRequest(
+                "John", "Doe", "password123", null, null
+        );
 
-        assertThat(response.getFirstName()).isEqualTo("John");
+        when(credentialsGenerator.generateUsername(anyString(), anyString(), any()))
+                .thenReturn("john.doe");
+        when(roleRepository.findByName("ROLE_USER"))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> traineeService.createTraineeProfile(req, transactionId))
+                .isInstanceOf(RoleNotFoundException.class)
+                .hasMessage("Role ROLE_USER not found.");
+
+        verify(userRepository, never()).save(any());
+        verify(traineeRepository, never()).save(any());
     }
 
     @Test
-    void getTraineeProfileByUsername_notFound() {
-        when(traineeRepository.findByUserUsername("unknown")).thenReturn(Optional.empty());
+    void getTraineeById_success() {
 
-        assertThatThrownBy(() -> traineeService.getTraineeProfileByUsername("unknown", "pass", transactionId))
-                .isInstanceOf(UserNotFoundException.class);
+        Long traineeId = 1L;
+        TraineeProfileResponse expectedResponse = new TraineeProfileResponse(
+                "John", "Doe", LocalDate.of(2000, 1, 1), "Tbilisi", true
+        );
+
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+        when(mappers.getTraineeProfileResponse(trainee))
+                .thenReturn(expectedResponse);
+
+        TraineeProfileResponse response = traineeService.getTraineeById(traineeId, transactionId);
+
+        assertThat(response).isEqualTo(expectedResponse);
+        verify(traineeRepository).findById(traineeId);
     }
 
     @Test
     void activateDeactivateTrainee_success() {
+
+        Long traineeId = 1L;
         TraineeActivationRequest req = new TraineeActivationRequest("john.doe", false);
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
 
-        traineeService.activateDeactivateTrainee(req, "john.doe", "pass", transactionId);
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
 
-        verify(userRepository).save(any(User.class));
-        assertThat(user.getIsActive()).isFalse();
+        traineeService.activateDeactivateTrainee(req, traineeId, transactionId);
+
+        verify(userRepository).save(argThat(savedUser ->
+                savedUser.getIsActive() == false
+        ));
     }
 
     @Test
-    void updateTraineeProfile_success() {
-        TraineeUpdateRequest req = new TraineeUpdateRequest("John", "Smith", LocalDate.of(2000, 1, 1), "Tbilisi", true);
+    void activateDeactivateTrainee_alreadyInDesiredState_throwsConflict() {
+        // Arrange
+        Long traineeId = 1L;
+        user.setIsActive(false);
+        TraineeActivationRequest req = new TraineeActivationRequest("john.doe", false);
 
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
-        when(credentialsGenerator.generateUsername(any(), any(), any())).thenReturn("john.smith");
-        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+
+        assertThatThrownBy(() ->
+                traineeService.activateDeactivateTrainee(req, traineeId, transactionId))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasFieldOrPropertyWithValue("status", HttpStatus.CONFLICT);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void updateTraineeProfile_withNameChange_generatesNewUsername() {
+
+        Long traineeId = 1L;
+        TraineeUpdateRequest req = new TraineeUpdateRequest(
+                "John", "Smith", LocalDate.of(2000, 1, 1), "Tbilisi", true
+        );
+
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+        when(credentialsGenerator.generateUsername("John", "Smith", userRepository))
+                .thenReturn("john.smith");
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
+        when(traineeRepository.save(any(Trainee.class)))
+                .thenReturn(trainee);
+
+        TraineeUpdateResponse expectedResponse = new TraineeUpdateResponse(
+                "john.smith", "John", "Smith", true, "Tbilisi"
+        );
         when(mappers.getTraineeUpdateResponse(any(Trainee.class)))
-                .thenReturn(new TraineeUpdateResponse("john.smith", "John", "Smith", true, "Tbilisi"));
+                .thenReturn(expectedResponse);
 
-        TraineeUpdateResponse response = traineeService.updateTraineeProfile(req, "john.doe", "pass", transactionId);
+        TraineeUpdateResponse response = traineeService.updateTraineeProfile(req, traineeId, transactionId);
 
         assertThat(response.getUsername()).isEqualTo("john.smith");
-        verify(userRepository).save(any(User.class));
+        verify(credentialsGenerator).generateUsername("John", "Smith", userRepository);
     }
 
     @Test
     void deleteTraineeProfile_success() {
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
 
-        traineeService.deleteTraineeProfile("john.doe", "pass", transactionId);
+        Long traineeId = 1L;
+        user.setRoles(new ArrayList<>());
+
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+
+        traineeService.deleteTraineeProfile(traineeId, transactionId);
 
         verify(traineeRepository).delete(trainee);
+        verify(userRepository).delete(user);
     }
 
     @Test
-    void findNonAssignedTrainers_returnsList() {
-        Trainer trainer = new Trainer();
+    void deleteTraineeProfile_noAssociatedUser_throwsException() {
+        // Arrange
+        Long traineeId = 1L;
+        trainee.setUser(null);
+
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+
+        assertThatThrownBy(() -> traineeService.deleteTraineeProfile(traineeId, transactionId))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("No associated user with this trainee.");
+    }
+
+    @Test
+    void findNonAssignedTrainers_whenNoTrainersAssigned_returnsAllTrainers() {
+
+        Long traineeId = 1L;
+        trainee.setTrainers(new HashSet<>());
+
+        Trainer trainer1 = createTrainer("trainer1", 1L);
+        Trainer trainer2 = createTrainer("trainer2", 2L);
+
+        when(traineeRepository.findById(traineeId))
+                .thenReturn(Optional.of(trainee));
+        when(trainerRepository.findAll())
+                .thenReturn(Arrays.asList(trainer1, trainer2));
+        when(mappers.getTrainerResponseBasic(trainer1))
+                .thenReturn(new TrainerResponseBasic("trainer1"));
+        when(mappers.getTrainerResponseBasic(trainer2))
+                .thenReturn(new TrainerResponseBasic("trainer2"));
+
+        List<TrainerResponseBasic> result = traineeService.findNonAssignedTrainers(traineeId, transactionId);
+
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting("username").containsExactly("trainer1", "trainer2");
+    }
+
+    private Trainer createTrainer(String username, Long userId) {
         User trainerUser = new User();
-        trainerUser.setUsername("trainer1");
+        trainerUser.setId(userId);
+        trainerUser.setUsername(username);
+
+        Trainer trainer = new Trainer();
         trainer.setUser(trainerUser);
         trainer.setTrainees(new HashSet<>());
 
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
-        when(trainerRepository.findAll()).thenReturn(List.of(trainer));
-        when(mappers.getTrainerResponseBasic(any(Trainer.class)))
-                .thenReturn(new TrainerResponseBasic("trainer1"));
-
-        List<TrainerResponseBasic> result = traineeService.findNonAssignedTrainers("johndoe", "pass", transactionId);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getUsername()).isEqualTo("trainer1");
-    }
-
-    @Test
-    void updateTraineeTrainers_addsNewTrainer() {
-        TrainerRequestForTraineeTrainerListUpdate trainerReq = new TrainerRequestForTraineeTrainerListUpdate("trainer1");
-
-        Trainer trainer = new Trainer();
-        User trainerUser = new User();
-        trainerUser.setUsername("trainer1");
-        trainer.setUser(trainerUser);
-
-        trainee.setTrainers(new HashSet<>());
-
-        when(traineeRepository.findByUserUsername("john.doe")).thenReturn(Optional.of(trainee));
-        when(trainerRepository.findByUserUsername("trainer1")).thenReturn(Optional.of(trainer));
-        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
-        when(mappers.getTrainerResponseBasic(any(Trainer.class)))
-                .thenReturn(new TrainerResponseBasic("trainer1"));
-
-        UpdateTraineeTrainersRequest req = new UpdateTraineeTrainersRequest(List.of(trainerReq));
-
-        List<TrainerResponseBasic> result = traineeService.updateTraineeTrainers(req, "john.doe", "pass", transactionId);
-
-        assertThat(result).hasSize(1);
-        verify(traineeRepository).save(trainee);
+        return trainer;
     }
 }

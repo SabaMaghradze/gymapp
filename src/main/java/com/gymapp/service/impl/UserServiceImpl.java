@@ -4,7 +4,7 @@ import com.gymapp.exception.user.UserNotFoundException;
 import com.gymapp.model.User;
 import com.gymapp.repository.UserRepository;
 import com.gymapp.service.UserService;
-import com.gymapp.utils.AppContants;
+import com.gymapp.utils.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean unlockAcc(User user) {
         long lockTime = user.getLockTime().getTime();
-        long unlockTime = lockTime + AppContants.UNLOCK_DURATION_TIME;
+        long unlockTime = lockTime + AppConstants.UNLOCK_DURATION_TIME;
 
         long currentTime = System.currentTimeMillis();
 
