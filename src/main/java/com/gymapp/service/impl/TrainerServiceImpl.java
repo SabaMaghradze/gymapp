@@ -103,13 +103,13 @@ public class TrainerServiceImpl implements TrainerService {
 
     public TrainerProfileResponse getTrainerById(Long id, String transactionId) {
 
-        logger.info("[{}] Getting trainer profile for username={}", transactionId, id);
+        logger.info("[{}] Getting trainer profile for trainer={}", transactionId, id);
 
         Trainer trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Trainer not found"));
 
         TrainerProfileResponse response = mappers.getTrainerProfileResponse(trainer);
-        logger.info("[{}] Successfully fetched trainer profile for username={}", transactionId, id);
+        logger.info("[{}] Successfully fetched trainer profile for trainer={}", transactionId, id);
         return response;
     }
 

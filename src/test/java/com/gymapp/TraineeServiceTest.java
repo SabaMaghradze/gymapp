@@ -57,7 +57,9 @@ class TraineeServiceTest {
     private RoleRepository roleRepository;
 
     @Mock
-    private CredentialsGenerator credentialsGenerator;
+    private CredentialsGenerator credentialsGenerator; // this is not actual CredentialsGenerator, this actually
+    // has no idea how credentials are generated
+    // same goes for other dependencies (fields annotated with @Mock), that’s why we use "when" stubs
 
     @Mock
     private Mappers mappers;
@@ -113,16 +115,17 @@ class TraineeServiceTest {
                 "John", "Doe", "password123", LocalDate.of(2001, 1, 1), "Tbilisi"
         );
 
+        // configuring mocks
         when(credentialsGenerator.generateUsername("John", "Doe", userRepository))
-                .thenReturn("john.doe");
+                .thenReturn("john.doe"); //  If the service calls credentialsGenerator.generateUsername(...), return "john.doe" instead of generating a real username.
         when(passwordEncoder.encode("password123"))
-                .thenReturn("encodedPassword123");
+                .thenReturn("encodedPassword123"); // Don’t call real hashing. Just pretend the encoded password is "encodedPassword123".
         when(roleRepository.findByName("ROLE_USER"))
-                .thenReturn(Optional.of(userRole));
+                .thenReturn(Optional.of(userRole)); // Pretend the database found a User Role.
         when(userRepository.save(any(User.class)))
-                .thenReturn(user);
+                .thenReturn(user); // When the service tries to save a User to DB, don’t use a real DB. Just return the fake user object we have.
         when(traineeRepository.save(any(Trainee.class)))
-                .thenReturn(trainee);
+                .thenReturn(trainee); // When trainee is saved, return fake trainee instead of hitting real DB.
 
         RegistrationResponse response = traineeService.createTraineeProfile(req, transactionId);
 
